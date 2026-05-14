@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account - LabourHand</title>
+  <meta name="description" content="Join LabourHand today as a worker or employer." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<div class="lh-auth-bg py-4">
+  <div class="lh-auth-card">
+    <a href="index.html" class="btn btn-sm btn-outline-secondary mb-3">&larr; Back</a>
+
+    <div class="lh-card p-4 p-md-5">
+      <!-- Logo -->
+      <div class="text-center mb-4">
+        <div class="lh-logo-circle">🔨</div>
+        <h1 class="h4 fw-bold mb-1">Create Account</h1>
+        <p class="text-muted small">Join LabourHand today</p>
+      </div>
+
+      <!-- Role tabs -->
+      <div class="lh-role-tabs mb-4">
+        <button class="lh-role-tab active" id="tab-worker" onclick="setRole('worker')">Worker</button>
+        <button class="lh-role-tab"        id="tab-owner"  onclick="setRole('owner')">Employer</button>
+      </div>
+
+      <!-- Error -->
+      <div id="error-box" class="alert alert-danger d-none py-2 small"></div>
+
+      <form id="register-form" novalidate>
+        <!-- Full Name -->
+        <div class="mb-3">
+          <label class="form-label fw-medium" for="name">Full Name</label>
+          <div class="lh-input-wrap">
+            <span class="lh-input-icon">👤</span>
+            <input id="name" type="text" class="form-control" placeholder="Enter your full name" required />
+          </div>
+        </div>
+
+        <!-- Company Name (owner only) -->
+        <div class="mb-3" id="company-wrap" style="display:none!important;">
+          <label class="form-label fw-medium" for="company">Company Name</label>
+          <div class="lh-input-wrap">
+            <span class="lh-input-icon">💼</span>
+            <input id="company" type="text" class="form-control" placeholder="Enter company name" />
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+          <label class="form-label fw-medium" for="email">Email</label>
+          <div class="lh-input-wrap">
+            <span class="lh-input-icon">✉️</span>
+            <input id="email" type="email" class="form-control" placeholder="Enter your email" required />
+          </div>
+        </div>
+
+        <!-- Phone -->
+        <div class="mb-3">
+          <label class="form-label fw-medium" for="phone">Phone Number</label>
+          <div class="lh-input-wrap">
+            <span class="lh-input-icon">📱</span>
+            <input id="phone" type="tel" class="form-control" placeholder="+91 9876543210" required />
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+          <label class="form-label fw-medium" for="password">Password</label>
+          <div class="lh-input-wrap">
+            <span class="lh-input-icon">🔒</span>
+            <input id="password" type="password" class="form-control has-right-icon" placeholder="Create a password" required />
+            <button type="button" class="lh-input-icon-right" onclick="togglePw('password')">👁</button>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="mb-3">
+          <label class="form-label fw-medium" for="confirm">Confirm Password</label>
+          <div class="lh-input-wrap">
+            <span class="lh-input-icon">🔒</span>
+            <input id="confirm" type="password" class="form-control" placeholder="Confirm your password" required />
+          </div>
+        </div>
+
+        <!-- Terms -->
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" id="terms" />
+          <label class="form-check-label small text-muted" for="terms">
+            I agree to the <a href="#" style="color:var(--lh-primary);">Terms of Service</a> and <a href="#" style="color:var(--lh-primary);">Privacy Policy</a>
+          </label>
+        </div>
+
+        <button type="submit" class="btn w-100 fw-semibold py-2" style="background:var(--lh-primary);color:#fff;" id="submit-btn">
+          <span id="btn-text">Create Account</span>
+          <span id="btn-spinner" class="spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+        </button>
+      </form>
+
+      <p class="text-center text-muted small mt-4">
+        Already have an account?
+        <a id="login-link" href="login.html" style="color:var(--lh-primary);" class="fw-semibold text-decoration-none">Sign In</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/session.js"></script>
+<script src="js/router.js"></script>
+<script src="js/apiService.js"></script>
+<script src="js/mockTest.js"></script>
+<script>
+  Router.redirectIfLoggedIn();
+
+  let currentRole = new URLSearchParams(location.search).get('role') || 'worker';
+  setRole(currentRole);
+
+  function setRole(role) {
+    currentRole = role;
+    document.getElementById('tab-worker').classList.toggle('active', role === 'worker');
+    document.getElementById('tab-owner').classList.toggle('active',  role === 'owner');
+    document.getElementById('login-link').href = `login.html?role=${role}`;
+    const cw = document.getElementById('company-wrap');
+    cw.style.cssText = role === 'owner' ? '' : 'display:none!important;';
+  }
+
+  function togglePw(id) {
+    const el = document.getElementById(id);
+    el.type = el.type === 'password' ? 'text' : 'password';
+  }
+
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errBox  = document.getElementById('error-box');
+    const spinner = document.getElementById('btn-spinner');
+    const btnText = document.getElementById('btn-text');
+    const btn     = document.getElementById('submit-btn');
+
+    const name    = document.getElementById('name').value.trim();
+    const email   = document.getElementById('email').value.trim();
+    const phone   = document.getElementById('phone').value.trim();
+    const pass    = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm').value;
+    const company = document.getElementById('company').value.trim();
+    const terms   = document.getElementById('terms').checked;
+
+    errBox.classList.add('d-none');
+
+    if (pass !== confirm)  { errBox.textContent = 'Passwords do not match.'; errBox.classList.remove('d-none'); return; }
+    if (pass.length < 6)   { errBox.textContent = 'Password must be at least 6 characters.'; errBox.classList.remove('d-none'); return; }
+    if (!terms)            { errBox.textContent = 'Please accept the terms and conditions.'; errBox.classList.remove('d-none'); return; }
+
+    spinner.classList.remove('d-none');
+    btnText.textContent = 'Creating account…';
+    btn.disabled = true;
+
+    try {
+      const { token, user } = await Api.auth.register({
+        name, email, phone, password: pass,
+        role: currentRole === 'owner' ? 'OWNER' : 'WORKER',
+        companyName: company || undefined,
+      });
+      SessionManager.createSession({
+        id:          String(user.id),
+        name:        user.name,
+        email:       user.email,
+        phone:       user.phone,
+        role:        user.role === 'WORKER' ? 'worker' : 'owner',
+        avatar:      user.avatar,
+        verified:    user.verified,
+        language:    user.language || 'en',
+        companyName: user.companyName,
+      }, token);
+      location.href = user.role === 'WORKER' ? 'dashboard.html' : 'contractor.html';
+    } catch (err) {
+      errBox.textContent = 'Registration failed. Please try again.';
+      errBox.classList.remove('d-none');
+    } finally {
+      spinner.classList.add('d-none');
+      btnText.textContent = 'Create Account';
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Bids – LabourHand</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="bg-white border-bottom sticky-top" style="z-index:200;">
+  <div class="d-flex align-items-center justify-content-between px-3 py-2" style="max-width:1100px;margin:auto;">
+    <div class="d-flex align-items-center gap-3">
+      <img id="hdr-avatar" src="https://ui-avatars.com/api/?name=U&background=f97316&color=fff&size=48"
+           class="rounded-circle border" style="width:46px;height:46px;object-fit:cover;" alt="avatar" />
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <h6 class="mb-0 fw-bold" id="hdr-name">—</h6>
+          <span class="lh-verified" id="hdr-verified">✔ Verified</span>
+        </div>
+        <small class="text-muted" id="hdr-role">—</small>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-secondary" id="lang-btn" onclick="SessionManager.toggleLanguage()">हिंदी</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="Router.logout()">Logout</button>
+    </div>
+  </div>
+  <!-- Mode toggle removed -->
+</header>
+
+<div class="d-md-flex" style="max-width:1100px;margin:auto;">
+  <!-- Sidebar -->
+  <aside class="lh-sidebar">
+    <a href="dashboard.html"  class="lh-sidebar-link">🏠 Dashboard</a>
+    <a href="my-bids.html"    class="lh-sidebar-link active">📋 My Bids</a>
+    <a href="messages.html"   class="lh-sidebar-link">💬 Messages</a>
+    <a href="worker-profile.html" class="lh-sidebar-link" id="sidebar-profile">👤 My Profile</a>
+    <hr/>
+    <button class="lh-sidebar-link border-0 w-100 text-start" onclick="Router.logout()">🚪 Logout</button>
+  </aside>
+
+  <main class="flex-grow-1 p-3 p-md-4 lh-page-body">
+
+    <!-- Summary chips -->
+    <div class="d-flex gap-2 flex-wrap mb-4" id="bid-summary">
+      <!-- JS-rendered -->
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="d-flex gap-2 mb-3">
+      <button class="btn btn-sm btn-primary" onclick="filterBids('ALL')">All</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="filterBids('PENDING')">Pending</button>
+      <button class="btn btn-sm btn-outline-success"   onclick="filterBids('ACCEPTED')">Accepted</button>
+      <button class="btn btn-sm btn-outline-info"      onclick="filterBids('COMPLETED')">Completed</button>
+      <button class="btn btn-sm btn-outline-danger"    onclick="filterBids('REJECTED')">Rejected</button>
+    </div>
+
+    <!-- Bids list -->
+    <div id="bids-list"><!-- JS-rendered --></div>
+  </main>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="lh-bottom-nav d-md-none">
+  <a href="dashboard.html">🏠<span>Home</span></a>
+  <a href="my-bids.html" class="active">📋<span>My Bids</span></a>
+  <a href="messages.html">💬<span>Messages</span></a>
+  <a href="worker-profile.html" id="bottom-profile">👤<span>Profile</span></a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/session.js"></script>
+<script src="js/router.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/apiService.js"></script>
+<script src="js/dataMapper.js"></script>
+<script src="js/mockTest.js"></script>
+<script>
+  Router.requireAuth();
+  SessionManager.initCommonUI();
+
+  let allBids = [];
+
+  function bidCard(b) {
+    const isProjectCompleted = b.projectStatus === 'COMPLETED' || b.projectStatus === 'PAYMENT_VERIFIED';
+    return `
+      <div class="lh-card p-4 mb-3 lh-card-clickable" onclick="location.href='project.html?id=${b.projectId}'">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h6 class="fw-bold mb-0">${b.projectTitle}</h6>
+            <small class="text-muted">📍 ${b.projectLocation}</small>
+          </div>
+          ${isProjectCompleted ? '<span class="badge bg-info">Finished</span>' : DataMapper.statusBadge(b.status)}
+        </div>
+
+        <div class="row g-3 my-2">
+          <div class="col-4 text-center">
+            <small class="text-muted d-block">My Bid</small>
+            <span class="fw-bold" style="color:var(--lh-primary)">${DataMapper.currency(b.amount)}</span>
+          </div>
+          <div class="col-4 text-center">
+            <small class="text-muted d-block">Est. Days</small>
+            <span class="fw-bold">${b.estimatedDays}</span>
+          </div>
+          <div class="col-4 text-center">
+            <small class="text-muted d-block">Project</small>
+            ${DataMapper.statusBadge(b.projectStatus)}
+          </div>
+        </div>
+
+        ${b.status === 'ACCEPTED' ? `
+        <div class="lh-progress-wrapper my-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Payment Tracking</span>
+            <span class="fw-bold">${DataMapper.currency(b.amountPaid || 0)} / ${DataMapper.currency(b.amount)}</span>
+          </div>
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: ${((b.amountPaid || 0) / b.amount * 100).toFixed(0)}%"></div>
+          </div>
+        </div>` : ''}
+
+        ${b.progress !== undefined ? `
+        <div class="lh-progress-wrapper my-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Project Progress</span>
+            <span class="fw-bold">${b.progress}%</span>
+          </div>
+          ${DataMapper.progressBar(b.progress)}
+        </div>` : ''}
+
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <small class="text-muted">${DataMapper.timeAgo(b.submittedAt)}</small>
+          ${b.status === 'PENDING' && !SessionManager.getCurrentUser()?.role?.includes('owner')
+            ? `<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();withdrawBid(${b.id})">Withdraw</button>`
+            : ''}
+        </div>
+      </div>`;
+  }
+
+  async function withdrawBid(id) {
+    Notify.confirm('Withdraw this bid?', async () => {
+      try {
+        await Api.bid.withdraw(id);
+        allBids = allBids.filter(b => b.id !== id);
+        renderBids(allBids);
+        Notify.success("Bid withdrawn successfully");
+      } catch (err) { Notify.error(`Error: ${err.message}`); }
+    });
+  }
+
+  function renderBids(bids) {
+    DataMapper.toCards('#bids-list', bids, bidCard);
+  }
+
+  function filterBids(status) {
+    let filtered = [];
+    if (status === 'ALL') {
+      filtered = allBids;
+    } else if (status === 'COMPLETED') {
+      filtered = allBids.filter(b => b.status === 'ACCEPTED' && (b.projectStatus === 'COMPLETED' || b.projectStatus === 'PAYMENT_VERIFIED'));
+    } else if (status === 'ACCEPTED') {
+      filtered = allBids.filter(b => b.status === 'ACCEPTED' && b.projectStatus !== 'COMPLETED' && b.projectStatus !== 'PAYMENT_VERIFIED');
+    } else {
+      filtered = allBids.filter(b => b.status === status);
+    }
+    renderBids(filtered);
+  }
+
+  async function loadBids() {
+    DataMapper.showSpinner('#bids-list');
+    try {
+      allBids = await Api.bid.getMyBids();
+
+      // Summary chips
+      const pending   = allBids.filter(b => b.status === 'PENDING').length;
+      const completed = allBids.filter(b => b.status === 'ACCEPTED' && (b.projectStatus === 'COMPLETED' || b.projectStatus === 'PAYMENT_VERIFIED')).length;
+      const active    = allBids.filter(b => b.status === 'ACCEPTED' && b.projectStatus !== 'COMPLETED' && b.projectStatus !== 'PAYMENT_VERIFIED').length;
+      const rejected  = allBids.filter(b => b.status === 'REJECTED').length;
+
+      document.getElementById('bid-summary').innerHTML = `
+        <span class="badge text-bg-warning px-3 py-2">⏳ ${pending} Pending</span>
+        <span class="badge text-bg-primary px-3 py-2">⚡ ${active} Active</span>
+        <span class="badge text-bg-success px-3 py-2">✅ ${completed} Completed</span>
+        <span class="badge text-bg-danger px-3 py-2">❌ ${rejected} Rejected</span>`;
+
+      renderBids(allBids);
+    } catch (err) {
+      DataMapper.showError('#bids-list', `Could not load bids: ${err.message}`);
+    }
+  }
+
+  loadBids();
+</script>
+</body>
+</html>

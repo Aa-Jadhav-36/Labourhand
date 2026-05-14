@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contractor Dashboard - LabourHand</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- Header -->
+<header class="bg-white border-bottom sticky-top" style="z-index:200;">
+  <div class="d-flex align-items-center justify-content-between px-3 py-2" style="max-width:1200px;margin:auto;">
+    <div class="d-flex align-items-center gap-3">
+      <img id="hdr-avatar" src="https://ui-avatars.com/api/?name=O&background=3b82f6&color=fff&size=48"
+           class="rounded-circle border" style="width:46px;height:46px;object-fit:cover;" alt="avatar" />
+      <div>
+        <h6 class="mb-0 fw-bold" id="hdr-name">—</h6>
+        <small class="text-muted" id="hdr-role">Employer</small>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-danger" onclick="Router.logout()">Logout</button>
+    </div>
+  </div>
+</header>
+
+<div class="d-md-flex" style="max-width:1200px;margin:auto;">
+  <!-- Sidebar -->
+  <aside class="lh-sidebar">
+    <a href="contractor.html" class="lh-sidebar-link active">🏗️ Employer Dashboard</a>
+    <a href="messages.html"   class="lh-sidebar-link">💬 Messages</a>
+    <a href="dashboard.html"  class="lh-sidebar-link">🗺️ Job Map</a>
+    <hr/>
+    <button class="lh-sidebar-link border-0 w-100 text-start" onclick="Router.logout()">🚪 Logout</button>
+  </aside>
+
+  <main class="flex-grow-1 p-3 p-md-4 lh-page-body">
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4" id="stats-row">
+      <div class="col-6 col-md-3">
+        <div class="lh-card p-3 text-center">
+          <p class="h4 fw-bold mb-0" id="stat-projects">—</p>
+          <small class="text-muted">Projects</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="lh-card p-3 text-center">
+          <p class="h4 fw-bold mb-0" id="stat-team">—</p>
+          <small class="text-muted">Team Members</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="lh-card p-3 text-center">
+          <p class="h4 fw-bold mb-0 text-success" id="stat-earnings">—</p>
+          <small class="text-muted">Total Spent</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="lh-card p-3 text-center">
+          <p class="h4 fw-bold mb-0" id="stat-schedule">—</p>
+          <small class="text-muted">Upcoming Events</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Post Job Button -->
+    <div class="mb-4">
+      <button class="btn fw-semibold px-4 py-2" style="background:var(--lh-primary);color:#fff;"
+              data-bs-toggle="modal" data-bs-target="#postJobModal">
+        + Post New Job
+      </button>
+    </div>
+
+    <!-- Projects Table -->
+    <section class="mb-4">
+      <h5 class="lh-section-title">My Projects</h5>
+      <div class="lh-card p-3" id="projects-table">
+        <!-- JS-rendered -->
+      </div>
+    </section>
+
+    <!-- Team -->
+    <section class="mb-4">
+      <h5 class="lh-section-title">My Team</h5>
+      <div class="row g-3" id="team-list">
+        <!-- JS-rendered -->
+      </div>
+    </section>
+
+    <!-- Expenses -->
+    <section class="mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h5 class="lh-section-title mb-0">Project Expenses</h5>
+        <div>
+          <button class="btn btn-sm btn-outline-secondary me-1" onclick="loadEarnings('week')" id="earn-week">Week</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadEarnings('month')" id="earn-month">Month</button>
+        </div>
+      </div>
+      <div class="lh-card p-3" id="earnings-section">
+        <!-- JS-rendered -->
+      </div>
+    </section>
+
+    <!-- Schedule -->
+    <section class="mb-4">
+      <h5 class="lh-section-title">Schedule</h5>
+      <div class="lh-card p-3" id="schedule-table">
+        <!-- JS-rendered -->
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- FAB -->
+<button class="lh-fab" data-bs-toggle="modal" data-bs-target="#postJobModal">+</button>
+
+<!-- Bottom Nav -->
+<nav class="lh-bottom-nav d-md-none">
+  <a href="contractor.html" class="active">🏗️<span>Dashboard</span></a>
+  <a href="dashboard.html">🗺️<span>Job Map</span></a>
+  <a href="messages.html">💬<span>Messages</span></a>
+</nav>
+
+<!-- ── Post Job Modal ────────────────────────────────────────────────────── -->
+<div class="modal fade" id="postJobModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Post a New Job</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="post-job-form">
+        <div class="modal-body">
+          <div id="post-job-error" class="alert alert-danger d-none py-2 small"></div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Job Title</label>
+            <input type="text" id="pj-title" class="form-control" placeholder="e.g. House Painting – 3 BHK" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Description</label>
+            <textarea id="pj-desc" class="form-control" rows="3" placeholder="Describe the work…" required></textarea>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-medium">Category</label>
+              <select id="pj-cat" class="form-select">
+                <option>CONSTRUCTION</option><option>PLUMBING</option>
+                <option>ELECTRICAL</option><option>PAINTING</option>
+                <option>CARPENTRY</option><option>MASONRY</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-medium">Budget (₹)</label>
+              <input type="number" id="pj-budget" class="form-control" placeholder="15000" required />
+            </div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-6">
+              <label class="form-label fw-medium">Timeline (days)</label>
+              <input type="number" id="pj-days" class="form-control" placeholder="7" required />
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-medium">Location <small class="text-muted fw-normal">(City or Pincode)</small></label>
+              <input type="text" id="pj-location" class="form-control" placeholder="e.g. Pune, 411001" required />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn fw-semibold" style="background:var(--lh-primary);color:#fff;" id="pj-submit">
+            Post Job
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/session.js"></script>
+<script src="js/router.js"></script>
+<script src="js/apiService.js"></script>
+<script src="js/dataMapper.js"></script>
+<script src="js/mockTest.js"></script>
+<script>
+  Router.requireAuth();
+
+  SessionManager.initCommonUI();
+
+  /* ── Load all data ───────────────────────────────────── */
+  async function loadAll() {
+    await Promise.allSettled([loadProjects(), loadTeam(), loadEarnings('week'), loadSchedule()]);
+  }
+
+  /* Projects */
+  async function loadProjects() {
+    DataMapper.showSpinner('#projects-table');
+    try {
+      const list = await Api.contractor.getProjects();
+      document.getElementById('stat-projects').textContent = list.length;
+      DataMapper.toTable('#projects-table', list, [
+        { label: 'Project',  key: 'name' },
+        { label: 'Location', key: 'location' },
+        { label: 'Progress', key: 'progress', render: v => DataMapper.progressBar(v) },
+        { label: 'Workers',  key: 'workersAssigned' },
+        { label: 'Deadline', key: 'deadline' },
+        { label: 'Status',   key: 'status', render: v => DataMapper.statusBadge(v) },
+      ]);
+      // Click row → project detail
+      document.querySelectorAll('#projects-table tbody tr[data-id]').forEach(tr =>
+        tr.addEventListener('click', () => location.href = `project.html?id=${tr.dataset.id}`)
+      );
+    } catch { DataMapper.showError('#projects-table', 'Could not load projects.'); }
+  }
+
+  /* Team */
+  async function loadTeam() {
+    DataMapper.showSpinner('#team-list');
+    try {
+      const team = await Api.contractor.getTeam();
+      document.getElementById('stat-team').textContent = team.length;
+      document.getElementById('team-count') && (document.getElementById('team-count').textContent = `${team.length} workers available`);
+      DataMapper.toCards('#team-list', team, m => `
+        <div class="col-sm-6 col-lg-4">
+          <div class="lh-card p-3 d-flex align-items-center gap-3 lh-card-clickable"
+               onclick="location.href='worker-profile.html?id=${m.id}'">
+            <img src="${m.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.name)}&background=f97316&color=fff`}"
+                 class="rounded-circle" style="width:44px;height:44px;object-fit:cover;" alt="${m.name}" />
+            <div>
+              <p class="mb-0 fw-semibold small">${m.name}</p>
+              <p class="mb-0 text-muted" style="font-size:.75rem;">${m.specialization || 'Worker'}</p>
+              ${m.verified ? '<span class="lh-verified">✔ Verified</span>' : ''}
+            </div>
+          </div>
+        </div>`);
+    } catch { DataMapper.showError('#team-list', 'Could not load team.'); }
+  }
+
+  /* Earnings */
+  async function loadEarnings(period) {
+    document.getElementById('earn-week').classList.toggle('btn-primary',  period==='week');
+    document.getElementById('earn-month').classList.toggle('btn-primary', period==='month');
+    DataMapper.showSpinner('#earnings-section');
+    try {
+      const e = await Api.contractor.getEarnings(period);
+      document.getElementById('stat-earnings').textContent = DataMapper.currency(e.total);
+      const bars = (e.data || []).map(d => `
+        <div class="mb-2">
+          <div class="d-flex justify-content-between mb-1">
+            <small class="fw-medium">${d.label}</small>
+            <small class="text-muted">${DataMapper.currency(d.amount)}</small>
+          </div>
+          ${DataMapper.progressBar(e.peak ? Math.round((d.amount/e.peak)*100) : 0)}
+        </div>`).join('');
+      const summary = `
+        <div class="row g-3 mb-4">
+          <div class="col-4 text-center"><p class="fw-bold mb-0">${DataMapper.currency(e.total)}</p><small class="text-muted">Total</small></div>
+          <div class="col-4 text-center"><p class="fw-bold mb-0">${DataMapper.currency(e.average)}</p><small class="text-muted">Average</small></div>
+          <div class="col-4 text-center"><p class="fw-bold mb-0">${DataMapper.currency(e.peak)}</p><small class="text-muted">Peak</small></div>
+        </div>`;
+      document.getElementById('earnings-section').innerHTML = summary + bars;
+    } catch { DataMapper.showError('#earnings-section', 'Could not load earnings.'); }
+  }
+
+  /* Schedule */
+  async function loadSchedule() {
+    DataMapper.showSpinner('#schedule-table');
+    try {
+      const events = await Api.contractor.getSchedule();
+      document.getElementById('stat-schedule').textContent = events.length;
+      DataMapper.toTable('#schedule-table', events, [
+        { label: 'Worker',  key: 'workerName' },
+        { label: 'Project', key: 'projectName' },
+        { label: 'Date',    key: 'date' },
+        { label: 'Start',   key: 'startTime' },
+        { label: 'End',     key: 'endTime' },
+      ]);
+    } catch { DataMapper.showError('#schedule-table', 'Could not load schedule.'); }
+  }
+
+  /* ── Post Job ─────────────────────────────────────────── */
+  document.getElementById('post-job-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errBox = document.getElementById('post-job-error');
+    const btn    = document.getElementById('pj-submit');
+    errBox.classList.add('d-none');
+    btn.disabled = true;
+    btn.textContent = 'Posting…';
+    try {
+      const locationText = document.getElementById('pj-location').value.trim();
+      let lat = null, lng = null;
+      try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText)}`);
+        const data = await resp.json();
+        if (data && data.length > 0) {
+          lat = parseFloat(data[0].lat);
+          lng = parseFloat(data[0].lon);
+        } else {
+          throw new Error("Could not locate this address on the map. Please enter a recognized City name or Pincode (e.g. 'Chakan, Pune' or '410501').");
+        }
+      } catch (err) {
+        throw new Error(err.message || "Failed to fetch map coordinates for this location.");
+      }
+
+      await Api.project.create({
+        title:        document.getElementById('pj-title').value.trim(),
+        description:  document.getElementById('pj-desc').value.trim(),
+        category:     document.getElementById('pj-cat').value,
+        budget:       Number(document.getElementById('pj-budget').value),
+        timelineDays: Number(document.getElementById('pj-days').value),
+        location:     locationText,
+        lat:          lat,
+        lng:          lng
+      });
+      bootstrap.Modal.getInstance(document.getElementById('postJobModal')).hide();
+      loadProjects();
+    } catch (err) {
+      errBox.textContent = `Failed to post job: ${err.message}`;
+      errBox.classList.remove('d-none');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Post Job';
+    }
+  });
+
+  loadAll();
+</script>
+</body>
+</html>

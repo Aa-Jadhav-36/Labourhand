@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages – LabourHand</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .conv-item { cursor:pointer; padding:.75rem 1rem; border-bottom:1px solid var(--lh-border); transition:background .15s; }
+    .conv-item:hover, .conv-item.active { background:rgba(249,115,22,.08); }
+    .unread-badge { background:var(--lh-primary); color:#fff; border-radius:999px; padding:.1rem .45rem; font-size:.7rem; font-weight:700; }
+  </style>
+</head>
+<body>
+
+<header class="bg-white border-bottom sticky-top" style="z-index:200;">
+  <div class="d-flex align-items-center justify-content-between px-3 py-2" style="max-width:1100px;margin:auto;">
+    <div class="d-flex align-items-center gap-3">
+      <img id="hdr-avatar" src="https://ui-avatars.com/api/?name=U&background=f97316&color=fff&size=48"
+           class="rounded-circle border" style="width:46px;height:46px;object-fit:cover;" alt="avatar" />
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <h6 class="mb-0 fw-bold" id="hdr-name">—</h6>
+          <span class="lh-verified" id="hdr-verified">✔ Verified</span>
+        </div>
+        <small class="text-muted" id="hdr-role">—</small>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-secondary" id="lang-btn" onclick="SessionManager.toggleLanguage()">हिंदी</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="Router.logout()">Logout</button>
+    </div>
+  </div>
+  <!-- Mode toggle removed -->
+</header>
+
+<div style="max-width:1200px;margin:auto;" class="d-flex">
+
+  <!-- Sidebar -->
+  <aside class="lh-sidebar d-none d-md-flex flex-column">
+    <a href="dashboard.html" class="lh-sidebar-link">🏠 Dashboard</a>
+    <a href="my-bids.html"   class="lh-sidebar-link">📋 My Bids</a>
+    <a href="messages.html"  class="lh-sidebar-link active">💬 Messages</a>
+    <a href="worker-profile.html" class="lh-sidebar-link" id="sidebar-profile">👤 My Profile</a>
+    <hr/>
+    <button class="lh-sidebar-link border-0 w-100 text-start" onclick="Router.logout()">🚪 Logout</button>
+  </aside>
+
+  <!-- Messages layout -->
+  <div class="flex-grow-1 d-flex" style="height:calc(100vh - 56px);">
+
+    <!-- Conversation list -->
+    <div class="border-end" style="width:300px;min-width:200px;overflow-y:auto;flex-shrink:0;" id="conv-list-panel">
+      <div class="p-3 border-bottom fw-semibold bg-light small text-muted d-flex justify-content-between align-items-center">
+        <span>Conversations</span>
+        <button class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold" onclick="promptNewChat()">+ New</button>
+      </div>
+      <div id="conv-list">
+        <div class="p-3 text-center text-muted small">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Message thread -->
+    <div class="flex-grow-1 d-flex flex-column" id="thread-panel">
+      <!-- Empty state -->
+      <div id="thread-empty" class="flex-grow-1 d-flex align-items-center justify-content-center text-muted">
+        <div class="text-center">
+          <div style="font-size:2.5rem;">💬</div>
+          <p>Select a conversation</p>
+        </div>
+      </div>
+
+      <!-- Thread content (hidden until selected) -->
+      <div id="thread-content" class="lh-message-pane d-none">
+        <!-- Thread header -->
+        <div class="border-bottom px-3 py-2 d-flex align-items-center gap-2 bg-white">
+          <strong id="thread-name">—</strong>
+          <small class="text-muted ms-1" id="thread-project"></small>
+        </div>
+        <!-- Messages body -->
+        <div id="thread-body" class="lh-message-body flex-grow-1 overflow-y-auto"></div>
+        <!-- Send form -->
+        <div class="border-top p-2 bg-white">
+          <form id="send-form" class="d-flex gap-2">
+            <input id="send-input" class="form-control" placeholder="Type a message…" required autocomplete="off" />
+            <button type="submit" class="btn fw-semibold" style="background:var(--lh-primary);color:#fff;white-space:nowrap;">Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="lh-bottom-nav d-md-none">
+  <a href="dashboard.html">🏠<span>Home</span></a>
+  <a href="my-bids.html">📋<span>My Bids</span></a>
+  <a href="messages.html" class="active">💬<span>Messages</span></a>
+  <a href="worker-profile.html" id="bottom-profile">👤<span>Profile</span></a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/session.js"></script>
+<script src="js/router.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/apiService.js"></script>
+<script src="js/dataMapper.js"></script>
+<script src="js/mockTest.js"></script>
+<script>
+  Router.requireAuth();
+  SessionManager.initCommonUI();
+
+  const currentUser = SessionManager.getCurrentUser();
+  let activeConvId = null;
+  let activeReceiverId = null;
+
+  /* ── Load conversations ────────────────────────────── */
+  async function loadConversations() {
+    try {
+      const convs = await Api.message.getConversations();
+      const el = document.getElementById('conv-list');
+      if (!convs.length) { el.innerHTML = '<p class="p-3 text-muted small">No conversations yet.</p>'; return; }
+
+      el.innerHTML = convs.map(c => `
+        <div class="conv-item" id="conv-${c.conversationId}" onclick="openThread(${c.conversationId}, ${c.otherUserId}, '${c.otherUserName}', '${c.projectName || ''}')">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex align-items-center gap-2">
+              <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                   style="width:36px;height:36px;background:var(--lh-primary);flex-shrink:0;font-size:.8rem;">
+                ${c.otherUserName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p class="mb-0 fw-semibold small">${c.otherUserName}</p>
+                ${c.projectName ? `<small class="text-muted">${c.projectName}</small>` : ''}
+              </div>
+            </div>
+            ${c.unreadCount ? `<span class="unread-badge">${c.unreadCount}</span>` : ''}
+          </div>
+          <p class="text-muted mb-0 mt-1" style="font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            ${c.lastMessage || '—'}
+          </p>
+        </div>`).join('');
+
+      // Auto-open from URL param
+      const convParam = Router.param('conv');
+      if (convParam) {
+        const c = convs.find(x => String(x.conversationId) === convParam);
+        if (c) openThread(c.conversationId, c.otherUserId, c.otherUserName, c.projectName || '');
+      }
+    } catch (err) {
+      document.getElementById('conv-list').innerHTML = `<p class="p-3 text-danger small">${err.message}</p>`;
+    }
+  }
+
+  /* ── Open thread ────────────────────────────────────── */
+  async function openThread(convId, receiverId, name, project) {
+    // Highlight active
+    document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+    const item = document.getElementById(`conv-${convId}`);
+    if (item) item.classList.add('active');
+
+    if (convId === 'new') {
+        const body = document.getElementById('thread-body');
+        body.innerHTML = '<p class="text-center text-muted py-3 small">Start of new conversation.</p>';
+    }
+
+    activeConvId    = convId;
+    activeReceiverId = receiverId;
+    document.getElementById('thread-name').textContent    = name;
+    document.getElementById('thread-project').textContent = project ? `• ${project}` : '';
+    document.getElementById('thread-empty').classList.add('d-none');
+    document.getElementById('thread-content').classList.remove('d-none');
+
+    if (convId === 'new') return;
+    await loadMessages(convId);
+  }
+
+  function promptNewChat() {
+    Notify.prompt("Enter the User ID to start a conversation:", "", (idStr) => {
+      if (!idStr) return;
+      const uid = parseInt(idStr.trim(), 10);
+      if (!uid) { Notify.error('Invalid User ID'); return; }
+      openThread('new', uid, 'User ' + uid, '');
+    });
+  }
+
+  async function loadMessages(convId) {
+    const body = document.getElementById('thread-body');
+    body.innerHTML = '<div class="text-center text-muted py-3 small">Loading…</div>';
+    try {
+      const msgs = await Api.message.getMessages(convId);
+      if (!msgs.length) { body.innerHTML = '<p class="text-center text-muted small py-3">No messages yet.</p>'; return; }
+
+      body.innerHTML = msgs.map(m => {
+        const isMe = String(m.senderId) === String(currentUser?.id);
+        return `<div class="d-flex ${isMe ? 'justify-content-end' : ''}">
+          <div class="${isMe ? 'lh-bubble-me' : 'lh-bubble-other'}">
+            <p class="mb-0 small">${m.content}</p>
+            <small style="font-size:.65rem;opacity:.6;">${DataMapper.timeAgo(m.sentAt)}</small>
+          </div>
+        </div>`;
+      }).join('');
+
+      body.scrollTop = body.scrollHeight;
+    } catch (err) {
+      body.innerHTML = `<p class="text-danger small p-3">${err.message}</p>`;
+    }
+  }
+
+  /* ── Send message ───────────────────────────────────── */
+  document.getElementById('send-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('send-input');
+    const content = input.value.trim();
+    if (!content || !activeReceiverId) return;
+    input.value = '';
+
+    try {
+      await Api.message.send(activeReceiverId, content);
+      await loadMessages(activeConvId);
+    } catch (err) {
+      Notify.error(`Failed to send: ${err.message}`);
+    }
+  });
+
+  loadConversations();
+</script>
+</body>
+</html>

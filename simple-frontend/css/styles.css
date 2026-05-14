@@ -1,0 +1,253 @@
+/**
+ * LabourHand – Simple Frontend Styles
+ * Brand tokens + Bootstrap 5 overrides + custom utilities
+ */
+
+/* ── Google Font ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ── CSS Custom Properties (Brand Tokens) ───────────────────────────────── */
+:root {
+  --lh-primary:        #f97316;   /* orange-500 */
+  --lh-primary-dark:   #ea6c0a;
+  --lh-primary-light:  #fed7aa;
+  --lh-secondary:      #3b82f6;   /* blue-500  */
+  --lh-secondary-dark: #2563eb;
+  --lh-accent:         #fef3c7;
+  --lh-muted-bg:       #f8fafc;
+  --lh-border:         #e2e8f0;
+  --lh-text-muted:     #64748b;
+  --lh-shadow-sm:      0 1px 3px rgba(0,0,0,.08);
+  --lh-shadow-md:      0 4px 12px rgba(0,0,0,.12);
+  --lh-radius:         .75rem;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--lh-muted-bg);
+  color: #1e293b;
+  min-height: 100vh;
+}
+
+/* ── Headings ────────────────────────────────────────────────────────────── */
+h1,h2,h3,h4,h5,h6 { font-weight: 700; letter-spacing: -.01em; }
+
+/* ── Bootstrap colour overrides ─────────────────────────────────────────── */
+.btn-primary, .bg-primary-lh  { background-color: var(--lh-primary) !important; border-color: var(--lh-primary) !important; }
+.btn-primary:hover             { background-color: var(--lh-primary-dark) !important; }
+.btn-outline-primary           { color: var(--lh-primary) !important; border-color: var(--lh-primary) !important; }
+.btn-outline-primary:hover     { background-color: var(--lh-primary) !important; color: #fff !important; }
+.text-primary-lh               { color: var(--lh-primary) !important; }
+.border-primary-lh             { border-color: var(--lh-primary) !important; }
+.badge.bg-primary              { background-color: var(--lh-primary) !important; }
+
+.text-secondary-lh             { color: var(--lh-secondary) !important; }
+.btn-secondary-lh              { background-color: var(--lh-secondary) !important; border-color: var(--lh-secondary) !important; color: #fff; }
+.btn-secondary-lh:hover        { background-color: var(--lh-secondary-dark) !important; }
+
+/* ── Navbar ──────────────────────────────────────────────────────────────── */
+.lh-navbar {
+  background: #fff;
+  border-bottom: 1px solid var(--lh-border);
+  box-shadow: var(--lh-shadow-sm);
+}
+.lh-navbar .navbar-brand { font-weight: 800; font-size: 1.4rem; color: #1e293b; }
+.lh-navbar .navbar-brand span { color: var(--lh-primary); }
+.lh-navbar .nav-link { font-weight: 500; color: #475569; }
+.lh-navbar .nav-link:hover, .lh-navbar .nav-link.active { color: var(--lh-primary); }
+
+/* Hammer logo icon in navbar */
+.lh-logo-icon {
+  background: var(--lh-primary);
+  border-radius: .5rem;
+  padding: .35rem .4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: .4rem;
+}
+
+/* ── Bottom Mobile Nav ───────────────────────────────────────────────────── */
+.lh-bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #fff;
+  border-top: 1px solid var(--lh-border);
+  display: flex;
+  justify-content: space-around;
+  padding: .5rem 0 calc(.5rem + env(safe-area-inset-bottom));
+  z-index: 1000;
+}
+.lh-bottom-nav a {
+  display: flex; flex-direction: column; align-items: center;
+  color: var(--lh-text-muted); text-decoration: none; font-size: .7rem; font-weight: 500;
+  gap: .2rem; flex: 1;
+}
+.lh-bottom-nav a svg { width: 22px; height: 22px; }
+.lh-bottom-nav a.active { color: var(--lh-primary); }
+@media (min-width: 768px) { .lh-bottom-nav { display: none; } }
+
+/* Page bottom padding for mobile nav */
+.lh-page-body { padding-bottom: 5rem; }
+@media (min-width: 768px) { .lh-page-body { padding-bottom: 0; } }
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.lh-card {
+  background: #fff;
+  border: 1px solid var(--lh-border);
+  border-radius: var(--lh-radius);
+  box-shadow: var(--lh-shadow-sm);
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.lh-card:hover { box-shadow: var(--lh-shadow-md); }
+.lh-card-clickable { cursor: pointer; }
+.lh-card-clickable:hover { transform: translateY(-2px); }
+
+/* ── Category pills ─────────────────────────────────────────────────────── */
+.lh-category-pill {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .4rem; padding: .8rem; min-width: 90px;
+  border-radius: var(--lh-radius); background: #fff;
+  border: 1px solid var(--lh-border); cursor: pointer;
+  transition: box-shadow .2s, transform .2s;
+  font-size: .8rem; font-weight: 500; text-align: center;
+}
+.lh-category-pill:hover { box-shadow: var(--lh-shadow-md); transform: translateY(-2px); }
+
+.lh-cat-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+}
+
+/* ── Mode toggle ─────────────────────────────────────────────────────────── */
+.lh-mode-toggle {
+  display: flex; align-items: center; gap: .75rem;
+  background: #f1f5f9; border-radius: .5rem; padding: .75rem 1rem;
+}
+.lh-mode-toggle span { font-weight: 500; color: var(--lh-text-muted); transition: color .2s; }
+.lh-mode-toggle span.active { color: #1e293b; }
+
+/* Custom Bootstrap switch colour */
+.form-check-input:checked { background-color: var(--lh-primary) !important; border-color: var(--lh-primary) !important; }
+
+/* ── Hero section ────────────────────────────────────────────────────────── */
+.lh-hero {
+  background: linear-gradient(135deg, rgba(249,115,22,.06) 0%, #fff 50%, rgba(59,130,246,.06) 100%);
+  padding: 5rem 0;
+}
+@media (min-width: 768px) { .lh-hero { padding: 7rem 0; } }
+
+.lh-hero-feature-box {
+  display: flex; align-items: center; gap: .75rem;
+  padding: 1rem; border-radius: .5rem; margin-bottom: .5rem;
+}
+
+/* ── Feature cards ───────────────────────────────────────────────────────── */
+.lh-feature-icon {
+  width: 48px; height: 48px; border-radius: .5rem;
+  background: rgba(249,115,22,.1);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--lh-primary); font-size: 1.3rem;
+  flex-shrink: 0; margin-bottom: .75rem;
+}
+
+/* ── Step badge ──────────────────────────────────────────────────────────── */
+.lh-step-badge {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .85rem; flex-shrink: 0;
+}
+
+/* ── Auth pages ──────────────────────────────────────────────────────────── */
+.lh-auth-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(249,115,22,.05) 0%, #fff 50%, rgba(59,130,246,.05) 100%);
+  display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+}
+.lh-auth-card { max-width: 440px; width: 100%; }
+
+.lh-logo-circle {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--lh-primary);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.8rem; margin: 0 auto 1rem;
+  box-shadow: 0 4px 16px rgba(249,115,22,.4);
+}
+
+/* Role tab toggle */
+.lh-role-tabs {
+  display: grid; grid-template-columns: 1fr 1fr;
+  background: #f1f5f9; border-radius: .5rem;
+  padding: .25rem; gap: .25rem; margin-bottom: 1.5rem;
+}
+.lh-role-tab {
+  border: none; background: transparent; padding: .5rem 1rem;
+  border-radius: .35rem; font-weight: 600; cursor: pointer;
+  transition: background .2s, box-shadow .2s; color: var(--lh-text-muted);
+}
+.lh-role-tab.active {
+  background: #fff; color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
+}
+
+/* Input icon wrapper */
+.lh-input-wrap { position: relative; }
+.lh-input-icon { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
+.lh-input-icon-right { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; }
+.lh-input-wrap input { padding-left: 2.5rem; }
+.lh-input-wrap input.has-right-icon { padding-right: 2.5rem; }
+
+/* ── Floating Action Button ──────────────────────────────────────────────── */
+.lh-fab {
+  position: fixed; bottom: 5rem; right: 1.25rem;
+  background: var(--lh-primary); color: #fff;
+  border: none; border-radius: 50%; width: 56px; height: 56px;
+  font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(249,115,22,.5);
+  cursor: pointer; z-index: 900;
+  transition: background .2s, box-shadow .2s, transform .15s;
+}
+.lh-fab:hover { background: var(--lh-primary-dark); transform: scale(1.08); }
+@media (min-width: 768px) { .lh-fab { bottom: 1.5rem; } }
+
+/* ── Sidebar desktop nav ─────────────────────────────────────────────────── */
+.lh-sidebar {
+  width: 240px; flex-shrink: 0; background: #fff;
+  border-right: 1px solid var(--lh-border); min-height: 100vh;
+  position: sticky; top: 0; overflow-y: auto; padding: 1.5rem 1rem;
+}
+.lh-sidebar-link {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .6rem .8rem; border-radius: .5rem;
+  color: #475569; text-decoration: none; font-weight: 500; font-size: .92rem;
+  margin-bottom: .15rem; transition: background .15s, color .15s;
+}
+.lh-sidebar-link:hover { background: var(--lh-muted-bg); color: #1e293b; }
+.lh-sidebar-link.active { background: rgba(249,115,22,.1); color: var(--lh-primary); }
+.lh-sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; }
+@media (max-width: 767px) { .lh-sidebar { display: none; } }
+
+/* ── Verified badge ──────────────────────────────────────────────────────── */
+.lh-verified { background: #dcfce7; color: #166534; font-size: .7rem; font-weight: 700; padding: .15rem .45rem; border-radius: 999px; display: inline-flex; align-items: center; gap: .25rem; }
+
+/* ── Map placeholder ─────────────────────────────────────────────────────── */
+#map { height: 280px; border-radius: var(--lh-radius); overflow: hidden; }
+
+/* ── Messages layout ─────────────────────────────────────────────────────── */
+.lh-message-list  { max-height: calc(100vh - 160px); overflow-y: auto; }
+.lh-message-pane  { max-height: calc(100vh - 160px); display: flex; flex-direction: column; }
+.lh-message-body  { flex: 1; overflow-y: auto; padding: 1rem; }
+.lh-bubble-me     { background: var(--lh-primary); color: #fff; border-radius: 1rem 1rem 0 1rem; padding: .5rem .9rem; max-width: 75%; margin-left: auto; margin-bottom: .5rem; }
+.lh-bubble-other  { background: #f1f5f9; border-radius: 1rem 1rem 1rem 0; padding: .5rem .9rem; max-width: 75%; margin-bottom: .5rem; }
+
+/* ── Utility ─────────────────────────────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.lh-divider { border-top: 1px solid var(--lh-border); margin: 1.5rem 0; }
+.lh-section-title { font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: .75rem; }
+.lh-text-muted { color: var(--lh-text-muted); }
+.gap-2 { gap: .5rem !important; }

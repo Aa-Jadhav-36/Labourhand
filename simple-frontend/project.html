@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Details – LabourHand</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- Header -->
+<header class="bg-white border-bottom sticky-top" style="z-index:200;">
+  <div class="d-flex align-items-center px-3 py-2 gap-3" style="max-width:900px;margin:auto;">
+    <button onclick="history.back()" class="btn btn-sm btn-outline-secondary">&larr; Back</button>
+    <h6 class="mb-0 fw-bold flex-grow-1" id="hdr-title">Project Details</h6>
+  </div>
+</header>
+
+<div class="px-3 py-3 lh-page-body" style="max-width:900px;margin:auto;">
+
+  <!-- Project card -->
+  <div id="project-card">
+    <!-- JS-rendered -->
+  </div>
+
+  <!-- Bids section -->
+  <section class="mb-4" id="bids-section" style="display:none;">
+    <h5 class="lh-section-title">Bids Received</h5>
+    <div id="bids-table"><!-- JS bids table --></div>
+  </section>
+
+  <!-- Sprint Timeline (Project Updates) -->
+  <section class="mb-4" id="sprint-timeline-section" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="lh-section-title mb-0">Project Timeline & Updates</h5>
+    </div>
+    
+    <div class="lh-card p-3 mb-3">
+      <div id="timeline-feed" class="d-flex flex-column gap-3 mb-3" style="max-height: 400px; overflow-y: auto;">
+        <!-- JS Timeline Bubbles -->
+      </div>
+      
+      <hr />
+      
+      <form id="progress-form">
+        <label class="form-label fw-medium mb-1">Post an Update 💬</label>
+        <div class="d-flex gap-2 align-items-center fw-medium mt-1 mb-2 text-primary" style="font-size: 0.9rem;">
+          Progress: <input type="range" id="progress-slider" min="0" max="100" class="form-range w-50" />
+          <span id="progress-val">X%</span>
+        </div>
+        <textarea id="progress-comment" class="form-control mb-2" rows="2" placeholder="What was completed? Any blockers?" required></textarea>
+        
+        <!-- Payment Demand (Worker Only) -->
+        <div id="demand-section" class="mb-3 d-none p-2 border rounded bg-light">
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="demand-check">
+            <label class="form-check-label fw-medium text-dark small" for="demand-check">Demand Milestone Payment</label>
+          </div>
+          <div id="demand-amount-wrapper" class="d-none">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">₹</span>
+              <input type="number" id="demand-amount" class="form-control" placeholder="Amount (e.g. 5000)">
+            </div>
+            <small class="text-muted" style="font-size:0.7rem;">Do not demand more than the remaining project budget.</small>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold" id="progress-submit">Post update</button>
+        <div id="progress-err" class="text-danger small mt-2 d-none"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Place a Bid (worker) -->
+  <section id="place-bid-section" style="display:none;">
+    <div class="lh-card p-4">
+      <h5 class="lh-section-title">Place Your Bid</h5>
+      <div id="bid-success" class="alert alert-success d-none py-2 small"></div>
+      <div id="bid-error"   class="alert alert-danger  d-none py-2 small"></div>
+      <form id="bid-form">
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6">
+            <label class="form-label fw-medium">Your Bid Amount (₹)</label>
+            <input type="number" id="bid-amount" class="form-control" placeholder="12000" required />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label fw-medium">Estimated Days</label>
+            <input type="number" id="bid-days" class="form-control" placeholder="7" required />
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium">👥 Team Member User IDs <span class="text-muted fw-normal">(Optional)</span></label>
+          <input type="text" id="bid-team" class="form-control" placeholder="e.g. 5, 12, 8 (comma separated)" />
+          <small class="text-muted">You will automatically be included. Leave blank to bid alone.</small>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium">Proposal Message</label>
+          <textarea id="bid-message" class="form-control" rows="3" placeholder="Describe your experience and approach…" required></textarea>
+        </div>
+        <button type="submit" class="btn fw-semibold px-4" style="background:var(--lh-primary);color:#fff;" id="bid-submit">
+          Submit Bid
+        </button>
+      </form>
+    </div>
+  </section>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="lh-bottom-nav d-md-none">
+  <a href="dashboard.html">🏠<span>Home</span></a>
+  <a href="my-bids.html">📋<span>My Bids</span></a>
+  <a href="messages.html">💬<span>Messages</span></a>
+</nav>
+
+<!-- Payment Modal (Employer) -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Make Payment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <h3 class="mb-3" id="pay-modal-amount">₹0</h3>
+        <p class="text-muted small">Choose your payment method to clear this milestone.</p>
+        
+        <input type="hidden" id="pay-modal-update-id" />
+        
+        <div class="d-grid gap-2 mt-4">
+          <button class="btn btn-primary fw-semibold" id="btn-pay-online">Pay Online (Razorpay Test)</button>
+          <button class="btn btn-outline-success fw-semibold" id="btn-pay-cash">Mark as Paid in Cash</button>
+        </div>
+        <div id="pay-modal-error" class="text-danger small mt-3 d-none"></div>
+
+        <!-- Test Card Helper -->
+        <div class="mt-4 text-start border-top pt-3">
+          <button class="btn btn-sm btn-link text-decoration-none p-0 text-primary fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#testCardInfo">
+            ℹ️ Show Test Card Details
+          </button>
+          <div class="collapse mt-2" id="testCardInfo">
+            <div class="card card-body bg-light border-0 small py-2 px-3 shadow-sm">
+              <div class="mb-2 text-muted fw-bold" style="font-size: 0.7rem;">RAZORPAY TEST CARDS</div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <code>4100 2800 0000 1007</code>
+                <span class="badge bg-white text-dark border">Visa</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <code>5500 6700 0000 1002</code>
+                <span class="badge bg-white text-dark border">Mastercard</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <code>6527 6589 0000 1005</code>
+                <span class="badge bg-white text-dark border">RuPay</span>
+              </div>
+              <div class="mt-2 text-muted" style="font-size: 0.75rem;">
+                <strong>CVV:</strong> 123 | <strong>Expiry:</strong> 12/30
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Completion Modal -->
+<div class="modal fade" id="completionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Project Completion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>You are marking this project as 100% complete. There is a remaining balance of <strong id="completion-balance">₹0</strong> that must be cleared before completion.</p>
+        <div class="alert alert-warning small">Once you clear the balance, the project status will be updated to COMPLETED.</div>
+        <button class="btn btn-primary w-100 fw-bold" id="btn-pay-remaining">Pay Remaining Balance & Complete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Completion Modal -->
+<div class="modal fade" id="completionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Project Completion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>You are marking this project as 100% complete. There is a remaining balance of <strong id="completion-balance">₹0</strong> that must be cleared before completion.</p>
+        <div class="alert alert-warning small">Once you clear the balance, the project status will be updated to COMPLETED.</div>
+        <button class="btn btn-primary w-100 fw-bold" id="btn-pay-remaining">Pay Remaining Balance & Complete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mock Razorpay Modal -->
+<div class="modal fade" id="mockRazorpayModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+    <div class="modal-content border-0 shadow-lg overflow-hidden">
+      <!-- Razorpay Header -->
+      <div class="p-3 d-flex align-items-center justify-content-between" style="background: #232c3d; color: #fff;">
+        <div class="d-flex align-items-center gap-2">
+          <img src="https://ui-avatars.com/api/?name=LH&background=f97316&color=fff" class="rounded" style="width:32px; height:32px;" />
+          <div>
+            <div class="fw-bold" style="font-size: 0.9rem;">LabourHand</div>
+            <div style="font-size: 0.7rem; opacity: 0.8;">Payment for Milestone</div>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="fw-bold" id="rzp-amount-display">₹0</div>
+          <div style="font-size: 0.6rem; opacity: 0.6;">English | Help</div>
+        </div>
+      </div>
+
+      <div class="modal-body p-0 bg-light" id="rzp-body" style="min-height: 350px;">
+        <!-- Step 1: Selection -->
+        <div id="rzp-step-select" class="p-4">
+          <div class="mb-4">
+            <label class="form-label text-muted small fw-bold mb-1">CONTACT INFORMATION</label>
+            <div class="p-2 bg-white border rounded d-flex justify-content-between align-items-center">
+              <span class="small">+91 9876543210</span>
+              <a href="#" class="text-primary small text-decoration-none fw-bold">EDIT</a>
+            </div>
+          </div>
+
+          <label class="form-label text-muted small fw-bold mb-3">PREFERRED PAYMENT METHODS</label>
+          <div class="list-group list-group-flush border rounded overflow-hidden">
+            <button class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3" onclick="rzpGoTo('upi')">
+              <span class="fs-4">📱</span>
+              <div class="flex-grow-1">
+                <div class="fw-bold small">UPI</div>
+                <div class="text-muted" style="font-size: 0.7rem;">Google Pay, PhonePe, Paytm</div>
+              </div>
+              <span class="text-muted small">➔</span>
+            </button>
+            <button class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3" onclick="rzpGoTo('card')">
+              <span class="fs-4">💳</span>
+              <div class="flex-grow-1">
+                <div class="fw-bold small">Card</div>
+                <div class="text-muted" style="font-size: 0.7rem;">Visa, MasterCard, RuPay</div>
+              </div>
+              <span class="text-muted small">➔</span>
+            </button>
+          </div>
+          <div class="mt-4 text-center">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/Razorpay_logo.svg" style="height: 15px; opacity: 0.5;" />
+          </div>
+        </div>
+
+        <!-- Step 2: UPI QR / VPA -->
+        <div id="rzp-step-upi" class="p-4 d-none">
+           <div class="mb-3">
+             <a href="#" class="text-decoration-none small fw-bold text-primary" onclick="rzpGoTo('select')">← BACK</a>
+           </div>
+           <div class="text-center mb-4">
+             <div class="bg-white p-3 d-inline-block border rounded mb-2">
+               <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=MockRazorpayPayment" style="width: 150px;" />
+             </div>
+             <div class="fw-bold small">Scan QR with any UPI App</div>
+           </div>
+           <div class="d-grid gap-2">
+             <button class="btn btn-primary fw-bold py-2" onclick="rzpStartProcessing()">PAY NOW</button>
+           </div>
+        </div>
+
+        <!-- Step 3: Processing -->
+        <div id="rzp-step-processing" class="d-none d-flex flex-column align-items-center justify-content-center p-5" style="height: 350px;">
+           <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+           <div class="fw-bold text-muted">Authorizing Payment...</div>
+           <small class="text-muted mt-2">Do not close this window</small>
+        </div>
+
+        <!-- Step 4: Success -->
+        <div id="rzp-step-success" class="d-none d-flex flex-column align-items-center justify-content-center p-5 text-center" style="height: 350px;">
+           <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+             <span class="fs-1">✓</span>
+           </div>
+           <h4 class="fw-bold text-success mb-2">Payment Successful</h4>
+           <p class="text-muted small">The funds have been added to the worker's earnings.</p>
+           <div class="mt-3 text-muted small fw-bold">Ref ID: <span id="rzp-success-ref">#...</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rating Modal -->
+<div class="modal fade" id="ratingModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Rate Your Worker</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center p-4">
+        <p class="text-muted">Congratulations! The project is finished. How was your experience with <strong id="rating-worker-name">...</strong>?</p>
+        
+        <div class="d-flex justify-content-center gap-2 mb-4 fs-1" id="star-rating">
+          <span class="lh-star" data-val="1" onclick="setRating(1)">☆</span>
+          <span class="lh-star" data-val="2" onclick="setRating(2)">☆</span>
+          <span class="lh-star" data-val="3" onclick="setRating(3)">☆</span>
+          <span class="lh-star" data-val="4" onclick="setRating(4)">☆</span>
+          <span class="lh-star" data-val="5" onclick="setRating(5)">☆</span>
+        </div>
+        
+        <textarea id="rating-comment" class="form-control mb-3" rows="3" placeholder="Write a brief review..."></textarea>
+        
+        <button class="btn btn-primary w-100 fw-bold py-2" id="btn-submit-rating">Submit Review</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .lh-star { cursor: pointer; color: #ccc; transition: 0.2s; }
+  .lh-star.active { color: #f59e0b; }
+  @media print {
+    body * { visibility: hidden; }
+    #budget-card, #budget-card * { visibility: visible; }
+    #budget-card { position: absolute; left: 0; top: 0; width: 100%; }
+    .btn, .lh-bottom-nav, header { display: none !important; }
+  }
+</style>
+
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/session.js"></script>
+<script src="js/router.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/apiService.js"></script>
+<script src="js/dataMapper.js"></script>
+<script src="js/mockTest.js"></script>
+<script>
+  Router.requireAuth();
+
+  const projectId = Router.param('id');
+  const user      = SessionManager.getCurrentUser();
+  const isOwner   = user?.role === 'owner';
+
+  async function loadProject() {
+    DataMapper.showSpinner('#project-card');
+    try {
+      const p = await Api.project.getById(projectId);
+      document.getElementById('hdr-title').textContent = p.title;
+
+      document.getElementById('project-card').innerHTML = `
+        <div class="lh-card p-4 mb-4">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <h4 class="fw-bold mb-0">${p.title}</h4>
+            ${DataMapper.statusBadge(p.status)}
+          </div>
+          <p class="text-muted mb-3">${p.description || ''}</p>
+          <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3">
+              <small class="text-muted d-block">Budget</small>
+              <span class="fw-bold" style="color:var(--lh-primary)">${DataMapper.currency(p.budget)}</span>
+            </div>
+            <div class="col-6 col-md-3">
+              <small class="text-muted d-block">Timeline</small>
+              <span class="fw-bold">${p.timelineDays || '?'} days</span>
+            </div>
+            <div class="col-6 col-md-3">
+              <small class="text-muted d-block">Category</small>
+              <span class="fw-bold">${p.category || '—'}</span>
+            </div>
+            <div class="col-6 col-md-3">
+              <small class="text-muted d-block">Bids</small>
+              <span class="fw-bold">${p.bidCount || 0}</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <small class="text-muted">📍 ${p.location}</small>
+            ${p.distanceKm != null ? `<small class="ms-3 text-secondary fw-semibold">${p.distanceKm.toFixed(1)} km away</small>` : ''}
+          </div>
+          <div class="mb-1"><small class="text-muted">Progress</small></div>
+          ${DataMapper.progressBar(p.progress || 0)}
+          <div class="mt-3 d-flex gap-2 flex-wrap">
+            <span class="badge bg-light text-dark">Posted ${DataMapper.timeAgo(p.postedAt)}</span>
+            <span class="badge bg-light text-dark">By ${p.ownerName || 'Employer'}</span>
+            ${p.deadline ? `<span class="badge bg-light text-dark">Deadline ${p.deadline}</span>` : ''}
+          </div>
+        </div>
+        
+        <!-- Budget Tracking Card (only if bid accepted) -->
+        <div id="budget-card" class="lh-card p-4 mb-4 d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">Financial Tracking</h5>
+            ${isOwner ? `<button class="btn btn-sm btn-outline-primary fw-bold" onclick="openDirectPaymentModal()">💸 Make Payment</button>` : ''}
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-4 text-center border-end">
+              <small class="text-muted d-block">Contract Value</small>
+              <span class="fw-bold fs-5" id="budget-total">₹0</span>
+            </div>
+            <div class="col-4 text-center border-end">
+              <small class="text-muted d-block">Paid So Far</small>
+              <span class="fw-bold fs-5 text-success" id="budget-paid">₹0</span>
+            </div>
+            <div class="col-4 text-center">
+              <small class="text-muted d-block">Remaining</small>
+              <span class="fw-bold fs-5 text-danger" id="budget-remaining">₹0</span>
+            </div>
+          </div>
+
+          <!-- Payment History List -->
+          <div class="border-top pt-3">
+             <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0">Payment Ledger</h6>
+                <button class="btn btn-sm btn-light border" onclick="window.print()">🖨️ Download Statement</button>
+             </div>
+             <div id="payment-history-list" class="small">
+                <!-- JS-rendered -->
+                <div class="text-muted text-center py-2">No payments recorded yet.</div>
+             </div>
+          </div>
+        </div>
+        `;
+
+      // Owner: show bids
+      if (isOwner && p.status === 'OPEN_FOR_BIDS') {
+        document.getElementById('bids-section').style.display = '';
+        loadBids(p.id);
+      } else if (p.status === 'OPEN_FOR_BIDS' && !isOwner) {
+        // Worker: show bid form
+        document.getElementById('place-bid-section').style.display = '';
+        document.getElementById('bid-form').dataset.projectId = p.id;
+      }
+      
+      // If IN_PROGRESS or COMPLETED, show Timeline to participants
+      if (p.status === 'IN_PROGRESS' || p.status === 'COMPLETED' || p.status === 'PAYMENT_VERIFIED') {
+        // Show Budget Card
+        if (p.acceptedBidAmount) {
+            document.getElementById('budget-card').classList.remove('d-none');
+            document.getElementById('budget-total').textContent = DataMapper.currency(p.acceptedBidAmount);
+            document.getElementById('budget-paid').textContent = DataMapper.currency(p.acceptedBidPaid);
+            const remaining = p.acceptedBidAmount - p.acceptedBidPaid;
+            document.getElementById('budget-remaining').textContent = DataMapper.currency(remaining);
+            document.getElementById('budget-remaining').dataset.value = remaining;
+        }
+
+        document.getElementById('sprint-timeline-section').style.display = '';
+        document.getElementById('progress-slider').value = p.progress;
+        document.getElementById('progress-val').textContent = p.progress + '%';
+        if (!isOwner) {
+            document.getElementById('demand-section').classList.remove('d-none');
+        }
+        loadTimeline(p.id);
+        loadPaymentHistory(p.id);
+
+        // Check if project is COMPLETED and owner hasn't rated yet
+        if (isOwner && (p.status === 'COMPLETED' || p.status === 'PAYMENT_VERIFIED')) {
+             checkAndShowRatingModal(p);
+        }
+      }
+    } catch (err) {
+      DataMapper.showError('#project-card', `Could not load project: ${err.message}`);
+    }
+  }
+
+  async function loadBids(pid) {
+    DataMapper.showSpinner('#bids-table');
+    try {
+      const bids = await Api.bid.getProjectBids(pid);
+      DataMapper.toTable('#bids-table', bids, [
+        { label: 'Worker',   key: 'workerName' },
+        { label: 'Team',     key: 'teamWorkerIds', render: arr => Array.isArray(arr) && arr.length > 0 ? '+'+arr.length : 'Solo' },
+        { label: 'Amount',   key: 'amount',        render: v => DataMapper.currency(v) },
+        { label: 'Days',     key: 'estimatedDays' },
+        { label: 'Rating',   key: 'workerRating',  render: v => `⭐ ${v}` },
+        { label: 'Status',   key: 'status',        render: v => DataMapper.statusBadge(v) },
+        { label: 'Actions',  key: 'id',            render: (id, row) =>
+            row.status === 'PENDING'
+              ? `<button class='btn btn-sm btn-success me-1' onclick='acceptBid(${id})'>Accept</button>
+                 <button class='btn btn-sm btn-outline-danger' onclick='rejectBid(${id})'>Reject</button>`
+              : '—'
+        },
+      ]);
+    } catch { DataMapper.showError('#bids-table', 'Could not load bids.'); }
+  }
+
+  async function acceptBid(id) {
+    Notify.confirm('Accept this bid? This will assign the worker and start the project.', async () => {
+      try { await Api.bid.accept(id); location.reload(); }
+      catch (err) { Notify.error(`Error: ${err.message}`); }
+    });
+  }
+  async function rejectBid(id) {
+    Notify.confirm('Reject this bid?', async () => {
+      try { await Api.bid.reject(id); location.reload(); }
+      catch (err) { Notify.error(`Error: ${err.message}`); }
+    });
+  }
+
+  /* Place bid form */
+  document.getElementById('bid-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn    = document.getElementById('bid-submit');
+    const errBox = document.getElementById('bid-error');
+    const okBox  = document.getElementById('bid-success');
+    errBox.classList.add('d-none');
+    okBox.classList.add('d-none');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+
+    try {
+      const txt = document.getElementById('bid-team')?.value || '';
+      const teamArr = txt.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+      await Api.bid.place({
+        projectId:    Number(projectId),
+        amount:       Number(document.getElementById('bid-amount').value),
+        estimatedDays: Number(document.getElementById('bid-days').value),
+        message:      document.getElementById('bid-message').value.trim(),
+        teamWorkerIds: teamArr
+      });
+      okBox.textContent = '✅ Bid placed successfully!';
+      okBox.classList.remove('d-none');
+      document.getElementById('bid-form').reset();
+    } catch (err) {
+      errBox.textContent = `Failed to place bid: ${err.message}`;
+      errBox.classList.remove('d-none');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Submit Bid';
+    }
+  });
+
+  /* Timeline Logic */
+  document.getElementById('progress-slider').addEventListener('input', e => {
+    document.getElementById('progress-val').textContent = e.target.value + '%';
+  });
+
+  document.getElementById('demand-check').addEventListener('change', e => {
+      const w = document.getElementById('demand-amount-wrapper');
+      if (e.target.checked) {
+          w.classList.remove('d-none');
+          document.getElementById('demand-amount').required = true;
+      } else {
+          w.classList.add('d-none');
+          document.getElementById('demand-amount').required = false;
+      }
+  });
+
+  document.getElementById('progress-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('progress-submit');
+    const errBox = document.getElementById('progress-err');
+    errBox.classList.add('d-none');
+    btn.disabled = true; btn.textContent = 'Posting...';
+
+    const demandDemanded = document.getElementById('demand-check').checked;
+    const demandAmount = document.getElementById('demand-amount').value;
+    const progress = Number(document.getElementById('progress-slider').value);
+
+    // Enforcement: If 100% progress but remaining balance > 0
+    if (progress === 100 && isOwner) {
+        const remaining = Number(document.getElementById('budget-remaining').dataset.value || 0);
+        if (remaining > 0) {
+            btn.disabled = false; btn.textContent = 'Post update';
+            document.getElementById('completion-balance').textContent = DataMapper.currency(remaining);
+            new bootstrap.Modal(document.getElementById('completionModal')).show();
+            
+            document.getElementById('btn-pay-remaining').onclick = () => {
+                bootstrap.Modal.getInstance(document.getElementById('completionModal')).hide();
+                openDirectPaymentModal(remaining, true); // true = complete project after payment
+            };
+            return;
+        }
+    }
+
+    try {
+      await Api.project.postUpdate(projectId, {
+        progressPercentage: progress,
+        comment: document.getElementById('progress-comment').value.trim(),
+        paymentDemanded: demandDemanded,
+        demandAmount: demandDemanded ? Number(demandAmount) : null
+      });
+      document.getElementById('progress-comment').value = '';
+      document.getElementById('demand-check').checked = false;
+      document.getElementById('demand-amount-wrapper').classList.add('d-none');
+      document.getElementById('demand-amount').value = '';
+      loadProject(); // Reload project to update master progress bar
+      loadTimeline(projectId);
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.classList.remove('d-none');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Post update';
+    }
+  });
+
+  async function loadTimeline(pid) {
+    const feed = document.getElementById('timeline-feed');
+    try {
+      const updates = await Api.project.getUpdates(pid);
+      if (!updates || updates.length === 0) {
+        feed.innerHTML = '<div class="text-center text-muted py-3 small">No updates yet. Start the conversation!</div>';
+        return;
+      }
+      feed.innerHTML = updates.map(u => {
+        const isMe = u.userId === user.id;
+        const align = isMe ? 'text-end' : 'text-start';
+        const color = isMe ? 'bg-primary text-white' : 'bg-light text-dark';
+        
+        let demandBadge = '';
+        if (u.paymentDemanded) {
+            const isPaid = u.paymentStatus && u.paymentStatus !== 'PENDING';
+            demandBadge = `
+                <div class="mt-2 p-2 rounded bg-white text-dark border d-flex flex-column" style="font-size:0.8rem; text-align:left;">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold">Milestone Payment</span>
+                        ${isPaid ? '<span class="badge bg-success">PAID</span>' : '<span class="badge bg-warning text-dark">PENDING</span>'}
+                    </div>
+                    <div class="fs-6 fw-bold" style="color:var(--lh-primary)">${DataMapper.currency(u.demandAmount)}</div>
+                    ${!isPaid && isOwner ? `<button class="btn btn-sm btn-dark mt-2 w-100 fw-bold" onclick="openPaymentModal(${u.id}, ${u.demandAmount})">Pay Now</button>` : ''}
+                </div>
+            `;
+        }
+
+        return `
+          <div class="d-flex flex-column ${align}">
+            <small class="text-muted mb-1" style="font-size:0.75rem;">
+               <span class="fw-bold">${u.userName || 'User'}</span>
+               ${u.userRole === 'OWNER' ? ' <span class="badge bg-secondary" style="font-size:0.6rem">Employer</span>' : ''} •
+               ${DataMapper.timeAgo(u.createdAt)}
+            </small>
+            <div class="d-inline-block px-3 py-2 rounded-3 ${color}" style="max-width:85%; width:fit-content; ${isMe ? 'align-self:flex-end;' : 'align-self:flex-start;'}">
+              <div class="small mb-1 opacity-75 fw-semibold" style="font-size: 0.75rem;">Progress: <span class="badge bg-white text-dark">${u.progressPercentage || 0}%</span></div>
+              <div class="mb-0" style="font-size:0.9rem;">${u.comment}</div>
+              ${demandBadge}
+            </div>
+          </div>
+        `;
+      }).join('');
+      // Scroll to bottom
+      feed.scrollTop = feed.scrollHeight;
+    } catch (err) {
+      feed.innerHTML = `<span class="text-danger small">Failed to load timeline.</span>`;
+    }
+  }
+
+  if (!projectId) {
+    document.getElementById('project-card').innerHTML = '<div class="alert alert-warning">No project ID provided.</div>';
+  } else {
+    loadProject();
+  }
+
+  /* Payment Modal Flow */
+  let paymentModalObj = null;
+  let isFinalPayment = false;
+
+  function openDirectPaymentModal(amount = 0, final = false) {
+      isFinalPayment = final;
+      if (amount === 0) {
+          const remaining = Number(document.getElementById('budget-remaining').dataset.value || 0);
+          Notify.prompt("Enter amount to pay to worker:", remaining, (val) => {
+              const num = Number(val);
+              if (val === null || isNaN(num) || num <= 0) return;
+              openPaymentModal(null, num);
+          });
+      } else {
+          openPaymentModal(null, Number(amount));
+      }
+  }
+
+  function openPaymentModal(updateId, amount) {
+      if (!paymentModalObj) {
+          paymentModalObj = new bootstrap.Modal(document.getElementById('paymentModal'));
+      }
+      document.getElementById('pay-modal-amount').textContent = DataMapper.currency(amount);
+      document.getElementById('pay-modal-update-id').value = updateId || '';
+      document.getElementById('pay-modal-error').classList.add('d-none');
+      paymentModalObj.show();
+  }
+
+  async function processPaymentAPI(method, refId) {
+      const updateId = document.getElementById('pay-modal-update-id').value;
+      const amountStr = document.getElementById('pay-modal-amount').textContent.replace(/[^0-9.]/g, '');
+      const amount = Number(amountStr);
+
+      try {
+          await Api.project.payUpdate(projectId, {
+              progressUpdateId: updateId ? Number(updateId) : null,
+              amount: amount,
+              paymentMethod: method,
+              referenceId: refId
+          });
+          paymentModalObj.hide();
+
+          if (isFinalPayment) {
+              // Now we can set project to 100% and COMPLETED
+              await Api.project.postUpdate(projectId, {
+                  progressPercentage: 100,
+                  comment: "Project fully completed and final payment cleared.",
+                  paymentDemanded: false
+              });
+              Notify.success("Project Completed Successfully!");
+              setTimeout(() => location.reload(), 1500);
+          } else {
+              Notify.success("Payment Recorded!");
+              loadProject();
+              loadTimeline(projectId);
+          }
+      } catch (err) {
+          const errBox = document.getElementById('pay-modal-error');
+          errBox.textContent = `Payment recording failed: ${err.message}`;
+          errBox.classList.remove('d-none');
+          Notify.error(`Payment failed: ${err.message}`);
+      }
+  }
+
+  document.getElementById('btn-pay-cash').addEventListener('click', async () => {
+      Notify.confirm('Mark this milestone as paid in CASH? Ensure you have actually given the cash to the worker.', async () => {
+          document.getElementById('btn-pay-cash').textContent = 'Processing...';
+          document.getElementById('btn-pay-cash').disabled = true;
+          await processPaymentAPI('CASH', 'CASH-' + Date.now());
+          document.getElementById('btn-pay-cash').textContent = 'Mark as Paid in Cash';
+          document.getElementById('btn-pay-cash').disabled = false;
+      });
+  });
+
+  // RAZORPAY CONFIGURATION
+  const RZP_KEY_ID = "rzp_test_Sjfut8nV5mpDUe"; // Updated with your test key
+
+  document.getElementById('btn-pay-online').addEventListener('click', () => {
+      const amountStr = document.getElementById('pay-modal-amount').textContent.replace(/[^0-9.]/g, '');
+      const amount = Number(amountStr);
+      
+      const options = {
+          "key": RZP_KEY_ID,
+          "amount": amount * 100, // in paise
+          "currency": "INR",
+          "name": "LabourHand",
+          "description": "Project Milestone Payment",
+          "image": "https://ui-avatars.com/api/?name=LH&background=f97316&color=fff",
+          "handler": async function (response) {
+              // response contains: razorpay_payment_id
+              bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+              await processPaymentAPI('ONLINE', response.razorpay_payment_id);
+          },
+          "prefill": {
+              "name": user.name || "",
+              "email": user.email || "",
+              "contact": user.phone || ""
+          },
+          "theme": { "color": "#f97316" }
+      };
+
+      /* 
+       * RZP_KEY_ID:
+       * - For development/testing: Use "rzp_test_..." (Development Key)
+       * - For production/live: Use "rzp_live_..." (Live Key)
+       * Use the Development key for now to test without real money.
+       */
+
+      if (RZP_KEY_ID === "rzp_test_your_real_key_here") {
+          Notify.alert("Please set your real Razorpay Key ID in the project.html file (Line ~635) to use the real gateway.", "Key Missing", "warning");
+          // Fallback to my mock for demo purposes if they haven't set the key
+          rzpGoTo('select');
+          new bootstrap.Modal(document.getElementById('mockRazorpayModal')).show();
+          bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+          return;
+      }
+
+      const rzp1 = new Razorpay(options);
+      rzp1.on('payment.failed', function (response){
+          Notify.error("Payment Failed: " + response.error.description);
+      });
+      rzp1.open();
+  });
+
+  function rzpGoTo(step) {
+      ['select', 'upi', 'processing', 'success'].forEach(s => {
+          const el = document.getElementById('rzp-step-' + s);
+          if (el) el.classList.add('d-none');
+      });
+      const target = document.getElementById('rzp-step-' + step);
+      if (target) target.classList.remove('d-none');
+  }
+
+  function rzpStartProcessing() {
+      rzpGoTo('processing');
+      setTimeout(() => {
+          const ref = "pay_mock_" + Date.now();
+          const refEl = document.getElementById('rzp-success-ref');
+          if (refEl) refEl.textContent = ref;
+          rzpGoTo('success');
+          
+      setTimeout(async () => {
+              bootstrap.Modal.getInstance(document.getElementById('mockRazorpayModal')).hide();
+              await processPaymentAPI('ONLINE', ref);
+          }, 2000);
+      }, 2500);
+  }
+
+  /* ── Financial Ledger ──────────────────────────────── */
+  async function loadPaymentHistory(pid) {
+      try {
+          const list = await Api.project.getPayments(pid);
+          const container = document.getElementById('payment-history-list');
+          if (!list || list.length === 0) {
+              container.innerHTML = '<div class="text-muted text-center py-2">No payments recorded yet.</div>';
+              return;
+          }
+
+          container.innerHTML = list.map(p => `
+              <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                  <div>
+                      <div class="fw-bold">${DataMapper.currency(p.amount)}</div>
+                      <div class="text-muted small">${new Date(p.paidAt).toLocaleDateString()} • ${p.paymentMethod}</div>
+                  </div>
+                  <div class="text-end">
+                      <div class="small text-muted">Ref: ${p.referenceId || 'N/A'}</div>
+                      <a href="#" class="text-primary text-decoration-none small" onclick="event.preventDefault(); window.print();">Receipt</a>
+                  </div>
+              </div>
+          `).join('');
+      } catch (err) { console.error("History failed:", err); }
+  }
+
+  /* ── Rating System ─────────────────────────────────── */
+  let currentRatingVal = 0;
+  let ratingModalObj = null;
+  let ratingTargetWorkerId = null;
+
+  async function checkAndShowRatingModal(p) {
+      try {
+          // Check if already rated (using the new Ratings system)
+          const existing = await Api.worker.getRatings(p.workerId || 0);
+          const alreadyRated = existing.some(r => r.projectId === Number(projectId));
+          
+          if (!alreadyRated) {
+              ratingTargetWorkerId = p.workerId;
+              document.getElementById('rating-worker-name').textContent = p.acceptedBidWorkerName || 'the worker';
+              if (!ratingModalObj) ratingModalObj = new bootstrap.Modal(document.getElementById('ratingModal'));
+              ratingModalObj.show();
+          }
+      } catch (err) { console.error("Rating check failed:", err); }
+  }
+
+  window.setRating = function(val) {
+      currentRatingVal = val;
+      const stars = document.querySelectorAll('.lh-star');
+      stars.forEach((s, idx) => {
+          if (idx < val) s.classList.add('active');
+          else s.classList.remove('active');
+          s.textContent = idx < val ? '★' : '☆';
+      });
+  };
+
+  document.getElementById('btn-submit-rating').onclick = async () => {
+      if (currentRatingVal === 0) return Notify.alert("Please select a star rating.");
+      
+      const comment = document.getElementById('rating-comment').value.trim();
+      const btn = document.getElementById('btn-submit-rating');
+      btn.disabled = true; btn.textContent = 'Submitting...';
+
+      try {
+          await Api.review.create({
+              projectId: Number(projectId),
+              toUserId: ratingTargetWorkerId,
+              rating: currentRatingVal,
+              comment: comment
+          });
+          Notify.success("Thank you for your feedback!");
+          ratingModalObj.hide();
+      } catch (err) {
+          Notify.error(`Rating failed: ${err.message}`);
+          btn.disabled = false; btn.textContent = 'Submit Review';
+      }
+  };
+
+</script>
+</body>
+</html>

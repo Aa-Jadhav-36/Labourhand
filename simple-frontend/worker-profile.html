@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Worker Profile – LabourHand</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="bg-white border-bottom sticky-top" style="z-index:200;">
+  <div class="d-flex align-items-center px-3 py-2 gap-3" style="max-width:900px;margin:auto;">
+    <button onclick="history.back()" class="btn btn-sm btn-outline-secondary">&larr; Back</button>
+    <h6 class="mb-0 fw-bold">Worker Profile</h6>
+  </div>
+</header>
+
+<div class="d-md-flex" style="max-width:1100px;margin:auto;">
+  <!-- Sidebar -->
+  <aside class="lh-sidebar">
+    <a href="dashboard.html"      class="lh-sidebar-link">🏠 Dashboard</a>
+    <a href="my-bids.html"        class="lh-sidebar-link">📋 My Bids</a>
+    <a href="messages.html"       class="lh-sidebar-link">💬 Messages</a>
+    <a href="worker-profile.html" class="lh-sidebar-link active">👤 My Profile</a>
+    <hr/>
+    <button class="lh-sidebar-link border-0 w-100 text-start" onclick="Router.logout()">🚪 Logout</button>
+  </aside>
+
+  <main class="flex-grow-1 p-3 p-md-4 lh-page-body" style="max-width:740px;">
+
+    <!-- Profile Card -->
+    <div id="profile-card" class="mb-4"><!-- JS --></div>
+
+    <!-- Stats -->
+    <div id="profile-stats" class="row g-3 mb-4"><!-- JS --></div>
+
+    <!-- Skills -->
+    <section class="mb-4">
+      <h5 class="lh-section-title">Skills</h5>
+      <div id="skills-list" class="d-flex flex-wrap gap-2"><!-- JS --></div>
+    </section>
+    
+    <!-- Professional Details (Worker Only) -->
+    <section class="mb-4 d-none" id="professional-details-section">
+      <h5 class="lh-section-title">Professional Details</h5>
+      <div class="lh-card p-4">
+        <form id="professional-form">
+          <div id="prof-alert" class="alert d-none py-2 small"></div>
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label fw-medium">Main Specialization</label>
+              <input type="text" id="prof-spec" class="form-control" placeholder="e.g. Master Carpenter" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-medium">Years of Experience</label>
+              <input type="number" id="prof-exp" class="form-control" placeholder="e.g. 5" />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Current Status</label>
+            <select id="prof-status" class="form-select w-auto">
+              <option value="available">Available for Hire</option>
+              <option value="on-site">Currently Working On-site</option>
+              <option value="busy">Busy / Not Available</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Bio / About Me</label>
+            <textarea id="prof-bio" class="form-control" rows="3" placeholder="Describe your expertise..."></textarea>
+          </div>
+          <button type="submit" id="prof-submit" class="btn fw-semibold w-100" style="background:var(--lh-primary);color:#fff;">Save Professional Details</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Payment Details (Worker Only) -->
+    <section class="mb-4 d-none" id="payment-details-section">
+      <h5 class="lh-section-title">Payment Details</h5>
+      <div class="lh-card p-4">
+        <p class="text-muted small mb-3">Enter your payment details securely. Employers will use this to transfer milestone payments.</p>
+        
+        <form id="payment-form">
+          <div id="payment-alert" class="alert d-none py-2 small"></div>
+          
+          <!-- Bank Details Fields -->
+          <div id="bank-fields">
+            <h6 class="fw-bold mb-3">Bank Details</h6>
+            <div class="row g-3 mb-2">
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Account Holder Name</label>
+                <input type="text" id="pay-bank-name" class="form-control" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Bank Name</label>
+                <input type="text" id="pay-bank" class="form-control" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">IFSC Code</label>
+                <input type="text" id="pay-ifsc" class="form-control" />
+              </div>
+            </div>
+            
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Account Number</label>
+                <input type="text" id="pay-acc1" class="form-control" placeholder="Enter account number" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Confirm Account Number</label>
+                <input type="text" id="pay-acc2" class="form-control" placeholder="Re-enter account number" />
+              </div>
+            </div>
+          </div>
+
+          <!-- UPI Fields -->
+          <div id="upi-fields" class="mt-4">
+            <h6 class="fw-bold mb-3">UPI Details</h6>
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">UPI ID</label>
+                <input type="text" id="pay-upi1" class="form-control" placeholder="e.g. 9876543210@ybl" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Confirm UPI ID</label>
+                <input type="text" id="pay-upi2" class="form-control" placeholder="Re-enter UPI ID" />
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" id="pay-submit" class="btn fw-semibold w-100" style="background:var(--lh-primary);color:#fff;">Save Payment Details</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Certifications -->
+    <section class="mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h5 class="lh-section-title mb-0">Certifications</h5>
+        <button class="btn btn-sm btn-outline-primary" id="add-cert-btn" data-bs-toggle="modal" data-bs-target="#certModal">+ Add</button>
+      </div>
+      <div id="certs-list"><!-- JS --></div>
+    </section>
+
+    <!-- Reviews -->
+    <section class="mb-4">
+      <h5 class="lh-section-title">Reviews</h5>
+      <div id="reviews-list"><!-- JS --></div>
+    </section>
+
+    <!-- Message button (for other users viewing this profile) -->
+    <div id="msg-action" class="d-none mb-4">
+      <button class="btn fw-semibold" style="background:var(--lh-secondary);color:#fff;" id="msg-btn">
+        💬 Send Message
+      </button>
+    </div>
+
+  </main>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="lh-bottom-nav d-md-none">
+  <a href="dashboard.html">🏠<span>Home</span></a>
+  <a href="my-bids.html">📋<span>My Bids</span></a>
+  <a href="messages.html">💬<span>Messages</span></a>
+  <a href="worker-profile.html" class="active">👤<span>Profile</span></a>
+</nav>
+
+<!-- Add Certification Modal -->
+<div class="modal fade" id="certModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title fw-bold">Add Certification</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <form id="cert-form">
+        <div class="modal-body">
+          <div id="cert-error" class="alert alert-danger d-none py-2 small"></div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Certificate Name</label>
+            <input id="cert-name" type="text" class="form-control" placeholder="e.g. Masonry Level 2" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Issuing Body</label>
+            <input id="cert-issuer" type="text" class="form-control" placeholder="e.g. Skills India" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Year</label>
+            <input id="cert-year" type="text" class="form-control" placeholder="2024" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn" style="background:var(--lh-primary);color:#fff;" id="cert-submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/session.js"></script>
+<script src="js/router.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/apiService.js"></script>
+<script src="js/dataMapper.js"></script>
+<script src="js/mockTest.js"></script>
+<script>
+  window.onerror = (msg, url, line) => {
+      Notify.error(`System Error: ${msg} at ${line}`);
+      return false;
+  };
+
+  Router.requireAuth();
+
+  const currentUser = SessionManager.getCurrentUser();
+  SessionManager.initCommonUI();
+
+  const profileId   = Router.param('id') || currentUser?.id;
+  const isOwnProfile = String(profileId) === String(currentUser?.id);
+
+  // Hide cert add button if viewing someone else's profile
+  if (!isOwnProfile) {
+      document.getElementById('add-cert-btn').style.display = 'none';
+  } else {
+      document.getElementById('payment-details-section').classList.remove('d-none');
+      document.getElementById('professional-details-section').classList.remove('d-none');
+  }
+
+  async function loadProfile() {
+    DataMapper.showSpinner('#profile-card');
+    try {
+      const w = await Api.worker.getById(profileId);
+
+      const cardEl = document.getElementById('profile-card');
+      if (cardEl) {
+        cardEl.innerHTML = `
+        <div class="lh-card p-4">
+          <div class="d-flex align-items-start gap-4">
+            ${DataMapper.avatar(w.avatar, w.name, 80)}
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                <h3 class="mb-0 fw-bold">${w.name}</h3>
+                ${w.verified     ? '<span class="lh-verified">✔ Verified</span>' : ''}
+                ${w.skillsIndiaVerified ? '<span class="badge bg-success">Skills India</span>' : ''}
+              </div>
+              <p class="text-muted mb-2">${w.specialization || 'Worker'} • <span class="badge bg-secondary">User ID: ${w.id}</span></p>
+              <p class="mb-2 small">${w.bio || ''}</p>
+              <div class="d-flex gap-3 flex-wrap mt-2">
+                <div class="text-center bg-light rounded p-2 px-3 border">
+                  <div class="fw-bold fs-5">${w.completedJobs || 0}</div>
+                  <div class="text-muted small">Completed Jobs</div>
+                </div>
+                <div class="text-center bg-light rounded p-2 px-3 border">
+                  <div class="fw-bold fs-5">${w.yearsExperience || 0} yr</div>
+                  <div class="text-muted small">Experience</div>
+                </div>
+                <div class="text-center bg-light rounded p-2 px-3 border">
+                  <div class="fw-bold fs-5">${w.workerStatus || 'Available'}</div>
+                  <div class="text-muted small">Status</div>
+                </div>
+                <div class="text-center bg-light rounded p-2 px-3 border">
+                  <div class="fw-bold fs-5">⭐ ${w.rating ? w.rating.toFixed(1) : '0.0'}</div>
+                  <div class="text-muted small">Rating</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      
+      // Populate Professional Details
+      if (isOwnProfile) {
+          document.getElementById('prof-spec').value = w.specialization || '';
+          document.getElementById('prof-exp').value = w.yearsExperience || 0;
+          document.getElementById('prof-status').value = w.workerStatus || 'available';
+          document.getElementById('prof-bio').value = w.bio || '';
+      }
+
+      // Populate Payment Details (if own profile)
+      if (isOwnProfile) {
+          
+          // Populate Bank fields if they exist
+          if (w.holderName) document.getElementById('pay-bank-name').value = w.holderName;
+          if (w.bankName) document.getElementById('pay-bank').value = w.bankName;
+          if (w.ifscCode) document.getElementById('pay-ifsc').value = w.ifscCode;
+          if (w.bankAccountNo) {
+              document.getElementById('pay-acc1').value = w.bankAccountNo;
+              document.getElementById('pay-acc2').value = w.bankAccountNo;
+          }
+          
+          // Populate UPI fields if they exist
+          if (w.upiId) {
+              document.getElementById('pay-upi1').value = w.upiId;
+              document.getElementById('pay-upi2').value = w.upiId;
+          }
+      }
+
+      // Stats row
+      // const statsEl = document.getElementById('profile-stats');
+      // if (statsEl) {
+      //   statsEl.innerHTML = [
+      //     { label:'Rating',        val: w.rating        ? `⭐ ${w.rating}` : '—' },
+      //     { label:'Completed Jobs',val: w.completedJobs || 0 },
+      //     { label:'Experience',    val: w.yearsExperience ? `${w.yearsExperience} yrs` : '—' },
+      //     { label:'Status',        val: w.workerStatus || '—' },
+      //   ].map(s => `
+      //     <div class="col-6 col-md-3">
+      //       <div class="lh-card p-3 text-center">
+      //         <p class="h5 fw-bold mb-0">${s.val}</p>
+      //         <small class="text-muted">${s.label}</small>
+      //       </div>
+      //     </div>`).join('');
+      // }
+
+      // Skills chips
+      const skillsEl = document.getElementById('skills-list');
+      if (skillsEl) {
+        skillsEl.innerHTML =
+          (w.skills || []).map(s => `<span class="badge bg-light text-dark border px-3 py-2">${s}</span>`).join('') ||
+          '<p class="text-muted small">No skills listed.</p>';
+      }
+
+      // Message button for others
+      if (!isOwnProfile) {
+        document.getElementById('msg-action').classList.remove('d-none');
+        document.getElementById('msg-btn').onclick = () =>
+          Api.message.send(w.id, `Hi ${w.name}, I found your profile on LabourHand.`)
+            .then(() => location.href = 'messages.html')
+            .catch(err => Notify.error(err.message));
+      }
+    }
+
+    } catch (err) {
+      DataMapper.showError('#profile-card', `Could not load profile: ${err.message}`);
+    }
+  }
+    
+
+  async function loadCertifications() {
+    DataMapper.showSpinner('#certs-list');
+    try {
+      const certs = await Api.worker.getCertifications(profileId);
+      DataMapper.toCards('#certs-list', certs, c => `
+        <div class="lh-card p-3 mb-2 d-flex justify-content-between align-items-center">
+          <div>
+            <p class="mb-0 fw-semibold small">${c.name}</p>
+            <small class="text-muted">${c.issuer} · ${c.year}</small>
+          </div>
+          ${isOwnProfile
+            ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteCert(${c.id})">✕</button>`
+            : ''}
+        </div>`);
+    } catch { DataMapper.showError('#certs-list', 'Could not load certifications.'); }
+  }
+
+  async function deleteCert(id) {
+    Notify.confirm('Delete this certification?', async () => {
+      try {
+        await Api.worker.deleteCertification(id);
+        loadCertifications();
+        Notify.success("Certification deleted");
+      } catch (err) { Notify.error(`Error: ${err.message}`); }
+    });
+  }
+
+  async function loadReviews() {
+    DataMapper.showSpinner('#reviews-list');
+    try {
+      const ratings = await Api.worker.getRatings(profileId);
+      DataMapper.toCards('#reviews-list', ratings, r => `
+        <div class="lh-card p-3 mb-2">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <span class="fw-semibold small">${r.fromUserName || 'Anonymous'}</span>
+            <span>${DataMapper.starRating(r.rating)}</span>
+          </div>
+          <p class="mb-1 small">${r.comment || ''}</p>
+          <small class="text-muted">Project ID: ${r.projectId} · ${DataMapper.timeAgo(r.createdAt)}</small>
+        </div>`);
+    } catch { DataMapper.showError('#reviews-list', 'Could not load feedback.'); }
+  }
+
+  /* Add Certification */
+  document.getElementById('cert-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errBox = document.getElementById('cert-error');
+    const btn    = document.getElementById('cert-submit');
+    errBox.classList.add('d-none');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      await Api.worker.addCertification({
+        name:   document.getElementById('cert-name').value.trim(),
+        issuer: document.getElementById('cert-issuer').value.trim(),
+        year:   document.getElementById('cert-year').value.trim(),
+      });
+      bootstrap.Modal.getInstance(document.getElementById('certModal')).hide();
+      document.getElementById('cert-form').reset();
+      loadCertifications();
+    } catch (err) {
+      errBox.textContent = `Failed: ${err.message}`;
+      errBox.classList.remove('d-none');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save';
+    }
+  });
+
+  document.getElementById('payment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('payment-alert');
+      alertBox.classList.add('d-none');
+      alertBox.classList.remove('alert-success', 'alert-danger');
+
+      let reqData = { paymentMethod: 'BOTH' };
+
+      // Validate and collect Bank details
+      const acc1 = document.getElementById('pay-acc1').value.trim();
+      const acc2 = document.getElementById('pay-acc2').value.trim();
+      const bank = document.getElementById('pay-bank').value.trim();
+      const ifsc = document.getElementById('pay-ifsc').value.trim();
+      const holder = document.getElementById('pay-bank-name').value.trim();
+
+      if (!acc1 || !acc2 || !bank || !ifsc || !holder) {
+          alertBox.textContent = "All Bank details are required!";
+          alertBox.classList.add('alert-danger', 'd-block');
+          return;
+      }
+
+      if (acc1 !== acc2) {
+          alertBox.textContent = "Account numbers do not match!";
+          alertBox.classList.add('alert-danger', 'd-block');
+          return;
+      }
+      reqData.bankAccountNo = acc1;
+      reqData.bankName = bank;
+      reqData.ifscCode = ifsc;
+      reqData.holderName = holder;
+
+      // Validate and collect UPI details
+      const upi1 = document.getElementById('pay-upi1').value.trim();
+      const upi2 = document.getElementById('pay-upi2').value.trim();
+      
+      if (!upi1 || !upi2) {
+          alertBox.textContent = "UPI details are required!";
+          alertBox.classList.add('alert-danger', 'd-block');
+          return;
+      }
+      if (upi1 !== upi2) {
+          alertBox.textContent = "UPI IDs do not match!";
+          alertBox.classList.add('alert-danger', 'd-block');
+          return;
+      }
+      reqData.upiId = upi1;
+
+      const btn = document.getElementById('pay-submit');
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      try {
+          await Api.worker.updatePaymentDetails(reqData);
+          Notify.success("Payment details saved successfully!");
+      } catch (err) {
+          Notify.error(`Error: ${err.message}`);
+      } finally {
+          btn.disabled = false; btn.textContent = 'Save Payment Details';
+      }
+  });
+
+  document.getElementById('professional-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('prof-submit');
+      const alertBox = document.getElementById('prof-alert');
+      alertBox.classList.add('d-none');
+      
+      btn.disabled = true; btn.textContent = 'Saving...';
+      try {
+          await Api.user.updateMe({
+              specialization: document.getElementById('prof-spec').value.trim(),
+              yearsExperience: parseInt(document.getElementById('prof-exp').value) || 0,
+              workerStatus: document.getElementById('prof-status').value,
+              bio: document.getElementById('prof-bio').value.trim()
+          });
+          Notify.success("Professional details updated!");
+          location.reload();
+      } catch (err) {
+          Notify.error(`Error: ${err.message}`);
+      } finally {
+          btn.disabled = false; btn.textContent = 'Save Professional Details';
+      }
+  });
+
+  loadProfile();
+  loadCertifications();
+  loadReviews();
+</script>
+</body>
+</html>
+  

@@ -1,0 +1,321 @@
+@baseUrl = http://localhost:8081/api
+@ownerToken = your_owner_jwt_token_here
+@workerToken = your_worker_jwt_token_here
+@projectId = 1
+@bidId = 1
+@userId = 1
+@reviewId = 1
+@certificationId = 1
+
+
+# ==========================================
+# 1. AUTHENTICATION APIs
+# ==========================================
+
+### Register - Example 1: Register an OWNER
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john.owner@example.com",
+  "phone": "9876543210",
+  "password": "password123",
+  "role": "OWNER",
+  "companyName": "BuildCorp",
+  "language": "en"
+}
+
+### Register - Example 2: Register a WORKER
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Jane Smith",
+  "email": "jane.worker@example.com",
+  "phone": "9876543211",
+  "password": "password123",
+  "role": "WORKER",
+  "specialization": "Electrician",
+  "language": "en"
+}
+
+### Login - Example 1: Owner Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.owner@example.com",
+  "password": "password123"
+}
+
+### Login - Example 2: Worker Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "jane.worker@example.com",
+  "password": "password123"
+}
+
+
+# ==========================================
+# 2. USER APIs
+# ==========================================
+
+### Get Current User Profile
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{ownerToken}}
+
+### Get Current User Profile (Worker)
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{workerToken}}
+
+### Update User Profile - Example 1: Update Avatar & Bio
+PUT {{baseUrl}}/users/me
+Authorization: Bearer {{workerToken}}
+Content-Type: application/json
+
+{
+  "name": "Jane Smith",
+  "phone": "9998887776",
+  "avatar": "https://example.com/avatar.jpg",
+  "bio": "Expert electrician with 10 years of experience"
+}
+
+### Update User Profile - Example 2: Update Language
+PUT {{baseUrl}}/users/me
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "language": "es",
+  "companyName": "BuildCorp International"
+}
+
+
+# ==========================================
+# 3. PROJECT APIs
+# ==========================================
+
+### Create Project - Example 1: Masonry Project
+POST {{baseUrl}}/projects
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "title": "Wall Construction",
+  "description": "Need a mason to build a 100ft compound wall",
+  "category": "Masonry",
+  "budget": 50000,
+  "timelineDays": 15,
+  "location": "Bangalore",
+  "lat": 12.9716,
+  "lng": 77.5946,
+  "deadline": "2026-05-01"
+}
+
+### Create Project - Example 2: Electrical Project
+POST {{baseUrl}}/projects
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "title": "House Wiring Upgrade",
+  "description": "Complete rewiring of a 2BHK flat",
+  "category": "Electrical",
+  "budget": 15000,
+  "timelineDays": 5,
+  "location": "Indiranagar",
+  "lat": 12.9783,
+  "lng": 77.6408,
+  "deadline": "2026-04-15"
+}
+
+### Get Nearby Projects - Example 1
+GET {{baseUrl}}/projects/nearby?lat=12.9716&lng=77.5946&radius=10.0
+Authorization: Bearer {{workerToken}}
+
+### Get Nearby Projects - Example 2 (Larger Radius)
+GET {{baseUrl}}/projects/nearby?lat=12.9716&lng=77.5946&radius=50.0
+Authorization: Bearer {{workerToken}}
+
+### Update Project Progress - Example 1 (Midway)
+PUT {{baseUrl}}/projects/{{projectId}}/progress
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "progress": 50,
+  "status": "IN_PROGRESS"
+}
+
+### Update Project Progress - Example 2 (Completed)
+PUT {{baseUrl}}/projects/{{projectId}}/progress
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "progress": 100,
+  "status": "COMPLETED"
+}
+
+
+# ==========================================
+# 4. BID APIs
+# ==========================================
+
+### Place a Bid - Example 1
+POST {{baseUrl}}/bids
+Authorization: Bearer {{workerToken}}
+Content-Type: application/json
+
+{
+  "projectId": 1,
+  "amount": 45000,
+  "estimatedDays": 12,
+  "message": "I have experience building walls and can finish early."
+}
+
+### Place a Bid - Example 2
+POST {{baseUrl}}/bids
+Authorization: Bearer {{workerToken}}
+Content-Type: application/json
+
+{
+  "projectId": 2,
+  "amount": 14000,
+  "estimatedDays": 4,
+  "message": "I am a certified electrician ready to start immediately."
+}
+
+### Update a Bid - Example 1
+PUT {{baseUrl}}/bids/{{bidId}}
+Authorization: Bearer {{workerToken}}
+Content-Type: application/json
+
+{
+  "amount": 42000,
+  "estimatedDays": 12,
+  "message": "Revised my offer to be more competitive!"
+}
+
+### Accept Bid (Owner Only)
+PUT {{baseUrl}}/bids/{{bidId}}/accept
+Authorization: Bearer {{ownerToken}}
+
+
+# ==========================================
+# 5. WORKER & CERTIFICATION APIs
+# ==========================================
+
+### Add Certification - Example 1
+POST {{baseUrl}}/workers/certifications
+Authorization: Bearer {{workerToken}}
+Content-Type: application/json
+
+{
+  "name": "Advanced Electrical Safety",
+  "issuer": "National Safety Council",
+  "year": "2022"
+}
+
+### Add Certification - Example 2
+POST {{baseUrl}}/workers/certifications
+Authorization: Bearer {{workerToken}}
+Content-Type: application/json
+
+{
+  "name": "Master Mason Certification",
+  "issuer": "Builders Guild",
+  "year": "2020"
+}
+
+
+# ==========================================
+# 6. REVIEWS APIs
+# ==========================================
+
+### Submit Review - Example 1
+POST {{baseUrl}}/reviews
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "projectId": 1,
+  "revieweeId": 2,
+  "rating": 4.5,
+  "comment": "Great work, finished on time.",
+  "duration": "12 Days"
+}
+
+### Submit Review - Example 2
+POST {{baseUrl}}/reviews
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "projectId": 2,
+  "revieweeId": 3,
+  "rating": 5.0,
+  "comment": "Excellent wiring job, very professional.",
+  "duration": "4 Days"
+}
+
+
+# ==========================================
+# 7. CONTRACTOR SCHEDULE APIs
+# ==========================================
+
+### Create Schedule Event - Example 1
+POST {{baseUrl}}/contractor/schedule
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "workerId": 2,
+  "projectId": 1,
+  "date": "2026-04-05",
+  "startTime": "09:00:00",
+  "endTime": "17:00:00"
+}
+
+### Create Schedule Event - Example 2
+POST {{baseUrl}}/contractor/schedule
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "workerId": 3,
+  "projectId": 2,
+  "date": "2026-04-10",
+  "startTime": "10:00:00",
+  "endTime": "14:00:00"
+}
+
+
+# ==========================================
+# 8. MESSAGE APIs
+# ==========================================
+
+### Send Message - Example 1
+POST {{baseUrl}}/messages
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "receiverId": 2,
+  "content": "Hi Jane, when can you start the wiring work?",
+  "projectId": 2
+}
+
+### Send Message - Example 2
+POST {{baseUrl}}/messages
+Authorization: Bearer {{workerToken}}
+Content-Type: application/json
+
+{
+  "receiverId": 1,
+  "content": "I can start tomorrow!",
+  "projectId": 2
+}

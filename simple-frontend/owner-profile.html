@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employer Profile – LabourHand</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <header class="bg-white border-bottom sticky-top" style="z-index:200;">
+    <div class="d-flex align-items-center px-3 py-2 gap-3" style="max-width:900px;margin:auto;">
+      <button onclick="history.back()" class="btn btn-sm btn-outline-secondary">&larr; Back</button>
+      <h6 class="mb-0 fw-bold">Employer Profile</h6>
+    </div>
+  </header>
+
+  <div class="d-md-flex" style="max-width:1100px;margin:auto;">
+    <!-- Sidebar -->
+    <aside class="lh-sidebar">
+      <!-- JS-rendered -->
+    </aside>
+
+    <main class="flex-grow-1 p-3 p-md-4 lh-page-body" style="max-width:740px;">
+
+      <!-- Profile Card -->
+      <div id="profile-card" class="mb-4">
+        <!-- JS -->
+      </div>
+
+      <!-- Company Details -->
+      <section class="mb-4">
+        <h5 class="lh-section-title">Company / Business Details</h5>
+        <div class="lh-card p-4">
+          <form id="owner-form">
+            <div id="owner-alert" class="alert d-none py-2 small"></div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Business / Company Name</label>
+              <input type="text" id="owner-company" class="form-control" placeholder="e.g. Company Name" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Full Name</label>
+              <input type="text" id="owner-name" class="form-control" readonly />
+              <small class="text-muted">Name is managed via account settings.</small>
+            </div>
+
+            <button type="submit" id="owner-submit" class="btn fw-semibold w-100"
+              style="background:var(--lh-primary);color:#fff;">Save Details</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Recent Activity or Stats -->
+      <section class="mb-4">
+        <h5 class="lh-section-title">Account Statistics</h5>
+        <div id="profile-stats" class="row g-3">
+          <!-- JS -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="lh-bottom-nav d-md-none">
+    <!-- JS-rendered -->
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/apiService.js"></script>
+  <script src="js/dataMapper.js"></script>
+  <script src="js/mockTest.js"></script>
+  <script>
+    Router.requireAuth();
+
+    const user = SessionManager.getCurrentUser();
+    SessionManager.initCommonUI();
+
+    async function loadProfile() {
+      DataMapper.showSpinner('#profile-card');
+      try {
+        // Use general /me endpoint to get full user details including role-specific profile
+        const u = await Api.user.getMe();
+
+        document.getElementById('profile-card').innerHTML = `
+        <div class="lh-card p-4">
+          <div class="d-flex align-items-start gap-4">
+            ${DataMapper.avatar(u.avatar, u.name, 80)}
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                <h3 class="mb-0 fw-bold">${u.name}</h3>
+                ${u.verified ? '<span class="lh-verified">✔ Verified Employer</span>' : ''}
+              </div>
+              <p class="text-muted mb-2">Employer • <span class="badge bg-secondary">User ID: ${u.id}</span></p>
+              <p class="mb-0 small">Email: ${u.email}</p>
+              <p class="mb-0 small">Phone: ${u.phone || '—'}</p>
+            </div>
+          </div>
+        </div>`;
+
+        // Fill form
+        document.getElementById('owner-name').value = u.name;
+        if (u.ownerProfile) {
+          document.getElementById('owner-company').value = u.ownerProfile.companyName || '';
+
+          document.getElementById('profile-stats').innerHTML = [
+            { label: 'Projects Posted', val: u.ownerProfile.projectsPosted || 0 },
+            { label: 'Member Since', val: DataMapper.timeAgo(u.createdAt) },
+            { label: 'Account Status', val: u.verified ? 'Verified' : 'Pending' }
+          ].map(s => `
+            <div class="col-4">
+              <div class="lh-card p-3 text-center">
+                <p class="h5 fw-bold mb-0">${s.val}</p>
+                <small class="text-muted">${s.label}</small>
+              </div>
+            </div>`).join('');
+        }
+
+      } catch (err) {
+        DataMapper.showError('#profile-card', `Could not load profile: ${err.message}`);
+      }
+    }
+
+    document.getElementById('owner-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('owner-alert');
+      const btn = document.getElementById('owner-submit');
+      alertBox.classList.add('d-none');
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      try {
+        // We might need a specific endpoint for updating owner profile or use updateMe
+        await Api.user.updateMe({
+          ownerProfile: {
+            companyName: document.getElementById('owner-company').value.trim()
+          }
+        });
+        alertBox.textContent = "Profile updated successfully!";
+        alertBox.classList.remove('d-none', 'alert-danger');
+        alertBox.classList.add('alert-success');
+      } catch (err) {
+        alertBox.textContent = `Error: ${err.message}`;
+        alertBox.classList.remove('d-none', 'alert-success');
+        alertBox.classList.add('alert-danger');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save Details';
+      }
+    });
+
+    loadProfile();
+  </script>
+</body>
+
+</html>
