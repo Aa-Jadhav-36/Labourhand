@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BidService {
 
     private final BidRepository bidRepository;
@@ -158,7 +159,7 @@ public class BidService {
         r.setAmount(bid.getAmount());
         r.setEstimatedDays(bid.getEstimatedDays());
         r.setMessage(bid.getMessage());
-        r.setTeamWorkerIds(bid.getTeamWorkerIds() != null ? bid.getTeamWorkerIds() : new java.util.ArrayList<>());
+        r.setTeamWorkerIds(bid.getTeamWorkerIds() != null ? new java.util.ArrayList<>(bid.getTeamWorkerIds()) : new java.util.ArrayList<>());
         r.setStatus(bid.getStatus().name());
         r.setAmountPaid(bid.getAmountPaid());
         r.setAmountRemaining(bid.getAmount() - bid.getAmountPaid());

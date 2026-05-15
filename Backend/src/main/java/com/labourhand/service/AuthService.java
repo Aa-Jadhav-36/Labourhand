@@ -64,6 +64,7 @@ public class AuthService {
         return response;
     }
 
+    @Transactional
     public AuthDto.AuthResponse login(AuthDto.LoginRequest req) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword()));
